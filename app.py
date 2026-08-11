@@ -2,34 +2,24 @@ import streamlit as st
 import docx
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
+from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import parse_xml, OxmlElement
 from docx.oxml.ns import nsdecls, qn
 import io
 
 # Configuração da página Web
-st.set_page_config(page_title="Gerador de Relatórios Técnicos", layout="wide", page_icon="⚙️")
+st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
 
-st.title("⚙️ Gerador de Relatórios - Padrão Oficial")
+st.title("⚙️ Gerador de Relatórios Técnicos - Padrão Kärcher")
 st.subheader("Lavadoras de Alta Pressão e Aspiradores")
 
 st.markdown("---")
 
-# Funções auxiliares de formatação de tabelas do Word
+# Funções auxiliares para formatação no padrão Kärcher
 def set_cell_background(cell, fill_hex):
     tcPr = cell._tc.get_or_add_tcPr()
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
-
-def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
-    tcPr = cell._tc.get_or_add_tcPr()
-    tcMar = OxmlElement('w:tcMar')
-    for margin_name, val in [('top', top), ('bottom', bottom), ('left', left), ('right', right)]:
-        node = OxmlElement(f'w:{margin_name}')
-        node.set(qn('w:w'), str(val))
-        node.set(qn('w:type'), 'dxa')
-        tcMar.append(node)
-    tcPr.append(tcMar)
 
 # 1. CABEÇALHO / IDENTIFICAÇÃO
 st.header("1. Informações Gerais do Ensaio")
@@ -139,21 +129,28 @@ for idx in range(num_amostras):
     st.markdown("---")
 
 # BOTÃO DE GERAÇÃO DO WORD
-if st.button("🚀 GERAR RELATÓRIO OFICIAL (.DOCX)", type="primary"):
+if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
     doc = docx.Document()
 
     # Ajuste de Margens
-    sections = doc.sections
-    for section in sections:
+    for section in doc.sections:
         section.top_margin = Inches(0.8)
         section.bottom_margin = Inches(0.8)
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
+        
+        # Adiciona o nome "KÄRCHER" no cabeçalho de todas as páginas
+        header = section.header
+        p_hdr = header.paragraphs[0]
+        p_hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        r_hdr = p_hdr.add_run("KÄRCHER - RELATÓRIO TÉCNICO DE ENSAIO")
+        r_hdr.bold = True
+        r_hdr.font.size = Pt(8)
+        r_hdr.font.color.rgb = RGBColor(120, 120, 120)
 
-    # Tabela 1: Cabeçalho com Estilo Identico
+    # Tabela 1: Bloco de Cabeçalho Kärcher
     tbl_top = doc.add_table(rows=1, cols=2)
     tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
-    tbl_top.autofit = False
     
     cell_st_label = tbl_top.rows[0].cells[0]
     cell_st_val = tbl_top.rows[0].cells[1]
@@ -161,11 +158,11 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL (.DOCX)", type="primary"):
     cell_st_label.width = Inches(1.5)
     cell_st_val.width = Inches(5.0)
     
-    set_cell_background(cell_st_label, "1B365D") # Azul Escuro
+    set_cell_background(cell_st_label, "FFED00") # Amarelo Kärcher (#FFED00)
     p0 = cell_st_label.paragraphs[0]
     r0 = p0.add_run("ST")
     r0.bold = True
-    r0.font.color.rgb = RGBColor(255, 255, 255)
+    r0.font.color.rgb = RGBColor(0, 0, 0) # Texto Preto
     r0.font.size = Pt(14)
 
     p1 = cell_st_val.paragraphs[0]
@@ -226,10 +223,12 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL (.DOCX)", type="primary"):
         hdr_row = tbl.rows[0]
         for col_i, h_text in enumerate(headers):
             cell = hdr_row.cells[col_i]
-            set_cell_background(cell, "E6ECEF")
+            set_cell_background(cell, "FFED00") # Amarelo Kärcher nos cabeçalhos das tabelas
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.add_run(h_text).bold = True
+            r = p.add_run(h_text)
+            r.bold = True
+            r.font.color.rgb = RGBColor(0, 0, 0)
 
         rows_data = [
             ("30s", "OK", str(dados["v30"]), str(dados["p30"]), str(dados["pr30"]), str(dados["vz30"]), str(dados["i30"]), sample_id),
@@ -284,10 +283,10 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL (.DOCX)", type="primary"):
     doc.save(buffer)
     buffer.seek(0)
 
-    st.success("✅ Relatório padrão oficial gerado com sucesso!")
+    st.success("✅ Relatório padrão Kärcher gerado com sucesso!")
     st.download_button(
         label="📥 Baixar Relatório Word (.docx)",
         data=buffer,
-        file_name=f"ST {codigo_st} - {item_testado}.docx",
+        file_name=f"ST {codigo_st} - Karcher {item_testado}.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )

@@ -20,33 +20,33 @@ def set_cell_background(cell, fill_hex):
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
 
-# 1. CABEÇALHO / IDENTIFICAÇÃO
+# 1. CABEÇALHO / IDENTIFICAÇÃO GERAL
 st.header("1. Informações Gerais do Ensaio")
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    codigo_st = st.text_input("Código ST / OS", value="001942")
+    codigo_st = st.text_input("Código ST", value="001941")
     tecnico = st.text_input("Técnico Responsável", value="Diego Rodrigues")
-    data_ensaio = st.text_input("Data do Teste", value="01/06/2026")
+    data_ensaio = st.text_input("Data do Teste", value="11/05/2026")
 
 with c2:
-    item_testado = st.text_input("Item Testado", value="Olinda PW K5")
+    item_testado = st.text_input("Item Testado", value="Olinda PW K4")
     modelo_motobomba = st.text_input("Modelo Motobomba", value="HY-603B")
 
 with c3:
     objetivo = st.text_area("Objetivo do Teste", value="Analisar a funcionalidade e a durabilidade do equipamento", height=80)
-    normas = st.text_area("Critério de Aprovação / Normas", value="1- PFC (9.300-020.0)\n2- KN 082.023 cap.4.7.1 / KN 082.021 cap.6", height=80)
+    normas = st.text_area("Critério de Aprovação / Normas", value="1- Atender os critérios da PFC (9.300-020.0)\n2- Atender os critérios das normas KN 082.023 cap.4.7.1 / KN 082.021 cap.6", height=80)
 
 conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
-    value="Amostras apresentaram boa performance nos testes funcionais e durabilidade dentro das especificações normativas.", 
-    height=100)
+    value="Modelo HY-603B\nAmostras 1 à 3: Todas apresentaram pistões travados;\nAmostras 1 e 2: Apresentaram a mesma falha mal contato no interruptor;\nAmostras 1 e 3: Tiveram falhas como rolamento superior do rotor com sensação de areia e enrolamentos danificados no processo de montagem.\nEm conformidade com a norma KN 082.021 cap. 6, as amostras demonstraram durabilidade superior a 60 horas (média de 84 horas). Foram consideradas APROVADAS por não apresentarem riscos ao usuário.", 
+    height=120)
 
 st.markdown("---")
 
-# 2. AMOSTRAS, PARÂMETROS E FOTOS
-st.header("2. Cadastro de Amostras (Parâmetros + Fotos)")
+# 2. CADASTRO DINÂMICO DE AMOSTRAS E MEDIÇÕES
+st.header("2. Cadastro de Amostras (Medições, Fotos e Defeitos)")
 
-num_amostras = st.number_input("Quantidade de Amostras para o Relatório", min_value=1, max_value=10, value=2)
+num_amostras = st.number_input("Quantidade de Amostras", min_value=1, max_value=10, value=4)
 
 amostras_dados = []
 
@@ -55,54 +55,54 @@ for idx in range(int(num_amostras)):
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        sample_id = st.text_input(f"Identificação (Sample ID)", value=f"AM {idx+1}", key=f"id_{idx}")
-        voltagem_conexao = st.text_input("Voltagem / Conexão", value="127V Engate Rápido" if idx==0 else "220V Engate Rápido", key=f"volt_{idx}")
+        sample_id = st.text_input(f"Sample ID", value=f"AM {idx+1}", key=f"id_{idx}")
+        voltagem_conexao = st.text_input("Voltagem / Conexão", value="127V Engate Rápido" if idx < 2 else "220V Engate Rápido", key=f"volt_{idx}")
     with col_b:
         partida = st.text_input("Partida a frio", value="94V" if "127" in voltagem_conexao else "187V", key=f"part_{idx}")
-        horas_ensaio = st.text_input("Horas de Ensaio / Duração", value="141 horas", key=f"h_{idx}")
+        horas_ensaio = st.text_input("Tempo de Teste / Horas", value="116 h" if idx==0 else "60 h", key=f"h_{idx}")
     with col_c:
-        defeitos_texto = st.text_area("Lista de Defeitos / Falhas", value="1- Água no cárter;\n2- Pistão riscado;", key=f"def_{idx}", height=100)
+        defeitos_texto = st.text_area("Lista de Defeitos", value="1- Vazamento de graxa;\n2- Parafuso solto;\n3- Pistão travado;", key=f"def_{idx}", height=100)
 
-    st.write(f"**Tabela de Medições da {sample_id} ({voltagem_conexao}):**")
+    st.write(f"**Parâmetros de Teste Funcional - {sample_id} ({voltagem_conexao}):**")
     m1, m2, m3, m4, m5 = st.columns(5)
     
     with m1:
         st.caption("Tensão (V)")
-        v30 = st.number_input("30s", value=126.7 if "127" in voltagem_conexao else 220.0, key=f"v30_{idx}")
-        v1m = st.number_input("1min", value=126.6 if "127" in voltagem_conexao else 220.0, key=f"v1m_{idx}")
-        v5m = st.number_input("5min", value=126.9 if "127" in voltagem_conexao else 220.0, key=f"v5m_{idx}")
+        v30 = st.number_input("30s", value=126.2 if "127" in voltagem_conexao else 220.4, key=f"v30_{idx}")
+        v1m = st.number_input("1min", value=128.0 if "127" in voltagem_conexao else 219.4, key=f"v1m_{idx}")
+        v5m = st.number_input("5min", value=127.1 if "127" in voltagem_conexao else 219.6, key=f"v5m_{idx}")
 
     with m2:
         st.caption("Potência (kW)")
-        p30 = st.number_input("30s", value=1.688, key=f"p30_{idx}")
-        p1m = st.number_input("1min", value=1.665, key=f"p1m_{idx}")
-        p5m = st.number_input("5min", value=1.648, key=f"p5m_{idx}")
+        p30 = st.number_input("30s", value=1.53 if "127" in voltagem_conexao else 1.49, key=f"p30_{idx}")
+        p1m = st.number_input("1min", value=1.55 if "127" in voltagem_conexao else 1.45, key=f"p1m_{idx}")
+        p5m = st.number_input("5min", value=1.50 if "127" in voltagem_conexao else 1.47, key=f"p5m_{idx}")
 
     with m3:
         st.caption("Pressão bico")
-        pr30 = st.number_input("30s", value=101.0, key=f"pr30_{idx}")
-        pr1m = st.number_input("1min", value=100.7, key=f"pr1m_{idx}")
-        pr5m = st.number_input("5min", value=101.1, key=f"pr5m_{idx}")
+        pr30 = st.number_input("30s", value=91.9 if "127" in voltagem_conexao else 88.6, key=f"pr30_{idx}")
+        pr1m = st.number_input("1min", value=94.0 if "127" in voltagem_conexao else 88.1, key=f"pr1m_{idx}")
+        pr5m = st.number_input("5min", value=94.5 if "127" in voltagem_conexao else 89.9, key=f"pr5m_{idx}")
 
     with m4:
         st.caption("Vazão (l/h)")
-        vz30 = st.number_input("30s", value=328.0, key=f"vz30_{idx}")
-        vz1m = st.number_input("1min", value=326.0, key=f"vz1m_{idx}")
-        vz5m = st.number_input("5min", value=327.0, key=f"vz5m_{idx}")
+        vz30 = st.number_input("30s", value=293.0 if "127" in voltagem_conexao else 329.0, key=f"vz30_{idx}")
+        vz1m = st.number_input("1min", value=296.0 if "127" in voltagem_conexao else 329.0, key=f"vz1m_{idx}")
+        vz5m = st.number_input("5min", value=297.0 if "127" in voltagem_conexao else 331.0, key=f"vz5m_{idx}")
 
     with m5:
         st.caption("Corrente (A)")
-        i30 = st.number_input("30s", value=13.98, key=f"i30_{idx}")
-        i1m = st.number_input("1min", value=13.75, key=f"i1m_{idx}")
-        i5m = st.number_input("5min", value=13.55, key=f"i5m_{idx}")
+        i30 = st.number_input("30s", value=12.68 if "127" in voltagem_conexao else 7.13, key=f"i30_{idx}")
+        i1m = st.number_input("1min", value=12.60 if "127" in voltagem_conexao else 6.95, key=f"i1m_{idx}")
+        i5m = st.number_input("5min", value=12.38 if "127" in voltagem_conexao else 7.03, key=f"i5m_{idx}")
 
     mv = round((v30 + v1m + v5m)/3, 1)
-    mp = round((p30 + p1m + p5m)/3, 3)
+    mp = round((p30 + p1m + p5m)/3, 2)
     mpr = round((pr30 + pr1m + pr5m)/3, 1)
     mvz = round((vz30 + vz1m + vz5m)/3, 0)
     mi = round((i30 + i1m + i5m)/3, 2)
 
-    fotos_uploaded = st.file_uploader(f"Anexar Fotos para {sample_id}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
+    fotos_uploaded = st.file_uploader(f"Fotos para {sample_id}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
 
     amostras_dados.append({
         "sample_id": sample_id,
@@ -120,34 +120,35 @@ for idx in range(int(num_amostras)):
     st.markdown("---")
 
 # BOTÃO DE GERAÇÃO DO WORD
-if st.button("🚀 GERAR RELATÓRIO COMPLETO KÄRCHER (.DOCX)", type="primary"):
+if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
     doc = docx.Document()
 
-    # Margens e Cabeçalho Kärcher
+    # Margens e Rodapé Kärcher
     for section in doc.sections:
         section.top_margin = Inches(0.8)
         section.bottom_margin = Inches(0.8)
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
         
-        header = section.header
-        p_hdr = header.paragraphs[0]
-        p_hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        r_hdr = p_hdr.add_run("KÄRCHER - RELATÓRIO TÉCNICO DE ENSAIO")
-        r_hdr.bold = True
-        r_hdr.font.size = Pt(8)
-        r_hdr.font.color.rgb = RGBColor(120, 120, 120)
+        # Configura o Rodapé com o nome Kärcher
+        footer = section.footer
+        p_ft = footer.paragraphs[0]
+        p_ft.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        r_ft = p_ft.add_run("KÄRCHER - Relatório Técnico de Ensaio e Qualidade")
+        r_ft.font.size = Pt(8)
+        r_ft.font.color.rgb = RGBColor(120, 120, 120)
 
-    # Bloco ST
+    # Bloco Amarelo Kärcher com o Código ST
     tbl_top = doc.add_table(rows=1, cols=2)
     tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
     c_st_label, c_st_val = tbl_top.rows[0].cells[0], tbl_top.rows[0].cells[1]
-    c_st_label.width, c_st_val.width = Inches(1.5), Inches(5.0)
+    c_st_label.width, c_st_val.width = Inches(1.2), Inches(5.3)
     
-    set_cell_background(c_st_label, "FFED00")
+    set_cell_background(c_st_label, "FFED00") # Amarelo Kärcher
     p0 = c_st_label.paragraphs[0]
     r0 = p0.add_run("ST")
     r0.bold, r0.font.size = True, Pt(14)
+    r0.font.color.rgb = RGBColor(0, 0, 0)
 
     p1 = c_st_val.paragraphs[0]
     r1 = p1.add_run(codigo_st)
@@ -155,7 +156,7 @@ if st.button("🚀 GERAR RELATÓRIO COMPLETO KÄRCHER (.DOCX)", type="primary"):
 
     doc.add_paragraph()
 
-    # Tabela de Identificação Geral
+    # Tabela de Dados Gerais
     tbl_meta = doc.add_table(rows=6, cols=2)
     tbl_meta.style = 'Table Grid'
     tbl_meta.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -184,12 +185,12 @@ if st.button("🚀 GERAR RELATÓRIO COMPLETO KÄRCHER (.DOCX)", type="primary"):
     doc.add_paragraph(conclusao_texto)
     doc.add_paragraph()
 
-    # GERAR UMA TABELA DE PARÂMETROS PARA CADA AMOSTRA
-    doc.add_paragraph().add_run("1- Teste Funcional de Parâmetros").bold = True
+    # TABELAS DE PARÂMETROS CONFORME A QUANTIDADE DE AMOSTRAS
+    doc.add_paragraph().add_run("1- Teste funcional Modelo " + modelo_motobomba).bold = True
 
     for am in amostras_dados:
         p_sub = doc.add_paragraph()
-        p_sub.add_run(f"Modelo {modelo_motobomba} - {am['sample_id']} ({am['voltagem_conexao']})").bold = True
+        p_sub.add_run(f"Máquina com conexão {am['voltagem_conexao']}").bold = True
         
         tbl = doc.add_table(rows=5, cols=8)
         tbl.style = 'Table Grid'
@@ -200,12 +201,13 @@ if st.button("🚀 GERAR RELATÓRIO COMPLETO KÄRCHER (.DOCX)", type="primary"):
         hdr_row = tbl.rows[0]
         for col_i, h_text in enumerate(headers):
             cell = hdr_row.cells[col_i]
-            set_cell_background(cell, "FFED00")
+            set_cell_background(cell, "FFED00") # Amarelo Kärcher no topo das tabelas
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(h_text)
             r.bold = True
-            r.font.size = Pt(9)
+            r.font.size = Pt(8.5)
+            r.font.color.rgb = RGBColor(0, 0, 0)
 
         rows_data = [
             ("30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), am["sample_id"]),
@@ -227,11 +229,11 @@ if st.button("🚀 GERAR RELATÓRIO COMPLETO KÄRCHER (.DOCX)", type="primary"):
 
         doc.add_paragraph()
 
-    # SEÇÃO DE FOTOS E DEFEITOS POR AMOSTRA
-    doc.add_paragraph().add_run("2- Durabilidade e Análise Fotográfica").bold = True
+    # ANÁLISE FOTOGRÁFICA
+    doc.add_paragraph().add_run("2- Durabilidade conforme norma KN 082.023 cap. 4.7.1").bold = True
 
     for am in amostras_dados:
-        doc.add_paragraph().add_run(f"• {am['sample_id']} - {am['voltagem_conexao']} ({am['horas']})").bold = True
+        doc.add_paragraph().add_run(f"• {am['sample_id']} ({am['voltagem_conexao']})").bold = True
         
         if am["fotos"]:
             cols_count = min(len(am["fotos"]), 3)
@@ -246,16 +248,37 @@ if st.button("🚀 GERAR RELATÓRIO COMPLETO KÄRCHER (.DOCX)", type="primary"):
                     img_stream = io.BytesIO(f_file.read())
                     p_img.add_run().add_picture(img_stream, width=Inches(1.8))
 
-        doc.add_paragraph("Falhas / Defeitos identificados:")
+        doc.add_paragraph(f"Após {am['horas']} foram identificadas as falhas / defeitos:")
         doc.add_paragraph(am["defeitos"])
         doc.add_paragraph()
+
+    # MATRIZ FINAL DE DURABILIDADE E LEGENDA
+    doc.add_paragraph().add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras").bold = True
+    
+    tbl_res = doc.add_table(rows=len(amostras_dados)+1, cols=4)
+    tbl_res.style = 'Table Grid'
+    
+    headers_res = ["Amostra", "Tempo de teste", "Vida útil esperada", "Falhas apresentadas"]
+    for c_i, h_txt in enumerate(headers_res):
+        cell = tbl_res.rows[0].cells[c_i]
+        set_cell_background(cell, "FFED00")
+        p = cell.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.add_run(h_txt).bold = True
+
+    for r_i, am in enumerate(amostras_dados):
+        row = tbl_res.rows[r_i+1]
+        row.cells[0].paragraphs[0].add_run(am["sample_id"])
+        row.cells[1].paragraphs[0].add_run(am["horas"])
+        row.cells[2].paragraphs[0].add_run("60 h")
+        row.cells[3].paragraphs[0].add_run("Identificadas no ensaio")
 
     # Salvar e disponibilizar download
     buffer = io.BytesIO()
     doc.save(buffer)
     buffer.seek(0)
 
-    st.success("✅ Relatório gerado com tabelas individuais por amostra!")
+    st.success("✅ Relatório padrão oficial Kärcher gerado com sucesso!")
     st.download_button(
         label="📥 Baixar Relatório Word (.docx)",
         data=buffer,

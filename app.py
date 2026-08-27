@@ -3,8 +3,6 @@ import docx
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.oxml import parse_xml, OxmlElement
-from docx.oxml.ns import nsdecls, qn
 import io
 
 # Configuração da página Web
@@ -16,6 +14,8 @@ st.subheader("Lavadoras de Alta Pressão e Aspiradores")
 st.markdown("---")
 
 def set_cell_background(cell, fill_hex):
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls
     tcPr = cell._tc.get_or_add_tcPr()
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
@@ -25,28 +25,29 @@ st.header("1. Informações Gerais do Ensaio")
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    codigo_st = st.text_input("Código ST", value="001941")
-    tecnico = st.text_input("Técnico Responsável", value="Diego Rodrigues")
-    data_ensaio = st.text_input("Data do Teste", value="11/05/2026")
+    codigo_st = st.text_input("Código ST", value="")
+    tecnico = st.text_input("Técnico Responsável", value="")
+    data_ensaio = st.text_input("Data do Teste", value="")
 
 with c2:
-    item_testado = st.text_input("Item Testado", value="Olinda PW K4")
-    modelo_motobomba = st.text_input("Modelo Motobomba", value="HY-603B")
+    item_testado = st.text_input("Item Testado", value="")
+    modelo_motobomba = st.text_input("Modelo Motobomba", value="")
 
 with c3:
-    objetivo = st.text_area("Objetivo do Teste", value="Analisar a funcionalidade e a durabilidade do equipamento", height=80)
-    normas = st.text_area("Critério de Aprovação / Normas", value="1- Atender os critérios da PFC (9.300-020.0)\n2- Atender os critérios das normas KN 082.023 cap.4.7.1 / KN 082.021 cap.6", height=80)
+    objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
+    normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite as normas e critérios...")
 
 conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
-    value="Modelo HY-603B\nAmostras 1 à 3: Todas apresentaram pistões travados;\nAmostras 1 e 2: Apresentaram a mesma falha mal contato no interruptor;\nAmostras 1 e 3: Tiveram falhas como rolamento superior do rotor com sensação de areia e enrolamentos danificados no processo de montagem.\nEm conformidade com a norma KN 082.021 cap. 6, as amostras demonstraram durabilidade superior a 60 horas (média de 84 horas). Foram consideradas APROVADAS por não apresentarem riscos ao usuário.", 
-    height=120)
+    value="", 
+    height=120,
+    placeholder="Digite aqui a conclusão e parecer técnico geral...")
 
 st.markdown("---")
 
 # 2. CADASTRO DINÂMICO DE AMOSTRAS E MEDIÇÕES
 st.header("2. Cadastro de Amostras (Medições, Fotos e Defeitos)")
 
-num_amostras = st.number_input("Quantidade de Amostras", min_value=1, max_value=10, value=4)
+num_amostras = st.number_input("Quantidade de Amostras", min_value=1, max_value=10, value=1)
 
 amostras_dados = []
 
@@ -56,45 +57,45 @@ for idx in range(int(num_amostras)):
     col_a, col_b, col_c = st.columns(3)
     with col_a:
         sample_id = st.text_input(f"Sample ID", value=f"AM {idx+1}", key=f"id_{idx}")
-        voltagem_conexao = st.text_input("Voltagem / Conexão", value="127V Engate Rápido" if idx < 2 else "220V Engate Rápido", key=f"volt_{idx}")
+        voltagem_conexao = st.text_input("Voltagem / Conexão", value="", placeholder="Ex: 127V Engate Rápido", key=f"volt_{idx}")
     with col_b:
-        partida = st.text_input("Partida a frio", value="94V" if "127" in voltagem_conexao else "187V", key=f"part_{idx}")
-        horas_ensaio = st.text_input("Tempo de Teste / Horas", value="116 h" if idx==0 else "60 h", key=f"h_{idx}")
+        partida = st.text_input("Partida a frio", value="", placeholder="Ex: 94V", key=f"part_{idx}")
+        horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h", key=f"h_{idx}")
     with col_c:
-        defeitos_texto = st.text_area("Lista de Defeitos", value="1- Vazamento de graxa;\n2- Parafuso solto;\n3- Pistão travado;", key=f"def_{idx}", height=100)
+        defeitos_texto = st.text_area("Lista de Defeitos", value="", placeholder="1- Defeito A;\n2- Defeito B;", key=f"def_{idx}", height=100)
 
-    st.write(f"**Parâmetros de Teste Funcional - {sample_id} ({voltagem_conexao}):**")
+    st.write(f"**Parâmetros de Teste Funcional - {sample_id}:**")
     m1, m2, m3, m4, m5 = st.columns(5)
     
     with m1:
         st.caption("Tensão (V)")
-        v30 = st.number_input("30s", value=126.2 if "127" in voltagem_conexao else 220.4, key=f"v30_{idx}")
-        v1m = st.number_input("1min", value=128.0 if "127" in voltagem_conexao else 219.4, key=f"v1m_{idx}")
-        v5m = st.number_input("5min", value=127.1 if "127" in voltagem_conexao else 219.6, key=f"v5m_{idx}")
+        v30 = st.number_input("30s (V)", value=0.0, key=f"v30_{idx}")
+        v1m = st.number_input("1min (V)", value=0.0, key=f"v1m_{idx}")
+        v5m = st.number_input("5min (V)", value=0.0, key=f"v5m_{idx}")
 
     with m2:
         st.caption("Potência (kW)")
-        p30 = st.number_input("30s", value=1.53 if "127" in voltagem_conexao else 1.49, key=f"p30_{idx}")
-        p1m = st.number_input("1min", value=1.55 if "127" in voltagem_conexao else 1.45, key=f"p1m_{idx}")
-        p5m = st.number_input("5min", value=1.50 if "127" in voltagem_conexao else 1.47, key=f"p5m_{idx}")
+        p30 = st.number_input("30s (kW)", value=0.0, key=f"p30_{idx}")
+        p1m = st.number_input("1min (kW)", value=0.0, key=f"p1m_{idx}")
+        p5m = st.number_input("5min (kW)", value=0.0, key=f"p5m_{idx}")
 
     with m3:
         st.caption("Pressão bico")
-        pr30 = st.number_input("30s", value=91.9 if "127" in voltagem_conexao else 88.6, key=f"pr30_{idx}")
-        pr1m = st.number_input("1min", value=94.0 if "127" in voltagem_conexao else 88.1, key=f"pr1m_{idx}")
-        pr5m = st.number_input("5min", value=94.5 if "127" in voltagem_conexao else 89.9, key=f"pr5m_{idx}")
+        pr30 = st.number_input("30s (Pr)", value=0.0, key=f"pr30_{idx}")
+        pr1m = st.number_input("1min (Pr)", value=0.0, key=f"pr1m_{idx}")
+        pr5m = st.number_input("5min (Pr)", value=0.0, key=f"pr5m_{idx}")
 
     with m4:
         st.caption("Vazão (l/h)")
-        vz30 = st.number_input("30s", value=293.0 if "127" in voltagem_conexao else 329.0, key=f"vz30_{idx}")
-        vz1m = st.number_input("1min", value=296.0 if "127" in voltagem_conexao else 329.0, key=f"vz1m_{idx}")
-        vz5m = st.number_input("5min", value=297.0 if "127" in voltagem_conexao else 331.0, key=f"vz5m_{idx}")
+        vz30 = st.number_input("30s (Vz)", value=0.0, key=f"vz30_{idx}")
+        vz1m = st.number_input("1min (Vz)", value=0.0, key=f"vz1m_{idx}")
+        vz5m = st.number_input("5min (Vz)", value=0.0, key=f"vz5m_{idx}")
 
     with m5:
         st.caption("Corrente (A)")
-        i30 = st.number_input("30s", value=12.68 if "127" in voltagem_conexao else 7.13, key=f"i30_{idx}")
-        i1m = st.number_input("1min", value=12.60 if "127" in voltagem_conexao else 6.95, key=f"i1m_{idx}")
-        i5m = st.number_input("5min", value=12.38 if "127" in voltagem_conexao else 7.03, key=f"i5m_{idx}")
+        i30 = st.number_input("30s (A)", value=0.0, key=f"i30_{idx}")
+        i1m = st.number_input("1min (A)", value=0.0, key=f"i1m_{idx}")
+        i5m = st.number_input("5min (A)", value=0.0, key=f"i5m_{idx}")
 
     mv = round((v30 + v1m + v5m)/3, 1)
     mp = round((p30 + p1m + p5m)/3, 2)
@@ -137,17 +138,16 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
         r_ft.font.size = Pt(8)
         r_ft.font.color.rgb = RGBColor(120, 120, 120)
 
-    # Bloco Amarelo Kärcher com o Código ST
+    # Bloco Limpo do Código ST
     tbl_top = doc.add_table(rows=1, cols=2)
+    tbl_top.style = 'Table Grid'
     tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
     c_st_label, c_st_val = tbl_top.rows[0].cells[0], tbl_top.rows[0].cells[1]
     c_st_label.width, c_st_val.width = Inches(1.2), Inches(5.3)
     
-    set_cell_background(c_st_label, "FFED00") # Amarelo Kärcher
     p0 = c_st_label.paragraphs[0]
     r0 = p0.add_run("ST")
     r0.bold, r0.font.size = True, Pt(14)
-    r0.font.color.rgb = RGBColor(0, 0, 0)
 
     p1 = c_st_val.paragraphs[0]
     r1 = p1.add_run(codigo_st)
@@ -200,7 +200,7 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
         hdr_row = tbl.rows[0]
         for col_i, h_text in enumerate(headers):
             cell = hdr_row.cells[col_i]
-            set_cell_background(cell, "FFED00") # Amarelo Kärcher no topo das tabelas
+            set_cell_background(cell, "FFED00") # Amarelo Kärcher no topo das tabelas de parâmetros
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(h_text)
@@ -281,6 +281,6 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
     st.download_button(
         label="📥 Baixar Relatório Word (.docx)",
         data=buffer,
-        file_name=f"ST {codigo_st} - Karcher {item_testado}.docx",
+        file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Relatorio'}.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )

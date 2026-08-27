@@ -47,22 +47,22 @@ st.markdown("---")
 # 2. CADASTRO DINÂMICO DE AMOSTRAS E MEDIÇÕES
 st.header("2. Cadastro de Amostras (Medições, Fotos e Defeitos)")
 
-num_amostras = st.number_input("Quantidade de Amostras", min_value=1, max_value=10, value=1)
+num_amostras = st.number_input("Quantidade de Amostras", min_value=, max_value=, value=)
 
 amostras_dados = []
 
 for idx in range(int(num_amostras)):
-    st.markdown(f"### 🧪 Amostra #{idx+1}")
+    st.markdown(f"### Amostra {idx+1}")
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        sample_id = st.text_input(f"Sample ID", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
-        voltagem_conexao = st.text_input("Voltagem / Conexão", value="", placeholder="Ex: 127V Engate Rápido", key=f"volt_{idx}")
+        partida = st.text_input("Partida a frio", value="", placeholder="Ex: 94V / 187V", key=f"part_{idx}")
+        voltagem = st.text_input("Voltagem", value="", placeholder="Ex: 127V / 220V", key=f"volt_{idx}")
+    
     with col_b:
-        partida = st.text_input("Partida a frio", value="", placeholder="Ex: 94V", key=f"part_{idx}")
-        horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h", key=f"h_{idx}")
+        horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h / 50 h", key=f"h_{idx}")
     with col_c:
-        defeitos_texto = st.text_area("Lista de Defeitos", value="", placeholder="1- Defeito A;\n2- Defeito B;", key=f"def_{idx}", height=100)
+        defeitos_texto = st.text_area("Falhas apresentadas", value="", placeholder="1- Falha A;\n2- Falha B;", key=f"def_{idx}", height=100)
 
     st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
     m1, m2, m3, m4, m5 = st.columns(5)
@@ -70,38 +70,38 @@ for idx in range(int(num_amostras)):
     with m1:
         st.caption("Tensão (V)")
         v30 = st.number_input("30s (V)", value=0.0, step=0.1, key=f"v30_{idx}")
-        v1m = st.number_input("1min (V)", value=0.0, step=0.1, key=f"v1m_{idx}")
+        v3m = st.number_input("1min (V)", value=0.0, step=0.1, key=f"v1m_{idx}")
         v5m = st.number_input("5min (V)", value=0.0, step=0.1, key=f"v5m_{idx}")
 
     with m2:
-        st.caption("Potência (kW)")
+        st.caption("Corrente (A)")
         p30 = st.number_input("30s (kW)", value=0.00, step=0.01, format="%.2f", key=f"p30_{idx}")
-        p1m = st.number_input("1min (kW)", value=0.00, step=0.01, format="%.2f", key=f"p1m_{idx}")
+        p3m = st.number_input("1min (kW)", value=0.00, step=0.01, format="%.2f", key=f"p1m_{idx}")
         p5m = st.number_input("5min (kW)", value=0.00, step=0.01, format="%.2f", key=f"p5m_{idx}")
 
     with m3:
-        st.caption("Pressão bico")
+        st.caption("Potência (kW)")
         pr30 = st.number_input("30s (Pr)", value=0.0, step=0.1, key=f"pr30_{idx}")
-        pr1m = st.number_input("1min (Pr)", value=0.0, step=0.1, key=f"pr1m_{idx}")
+        pr3m = st.number_input("1min (Pr)", value=0.0, step=0.1, key=f"pr1m_{idx}")
         pr5m = st.number_input("5min (Pr)", value=0.0, step=0.1, key=f"pr5m_{idx}")
 
     with m4:
-        st.caption("Vazão (l/h)")
+        st.caption("Pressão bico")
         vz30 = st.number_input("30s (Vz)", value=0.0, step=1.0, key=f"vz30_{idx}")
-        vz1m = st.number_input("1min (Vz)", value=0.0, step=1.0, key=f"vz1m_{idx}")
+        vz3m = st.number_input("1min (Vz)", value=0.0, step=1.0, key=f"vz1m_{idx}")
         vz5m = st.number_input("5min (Vz)", value=0.0, step=1.0, key=f"vz5m_{idx}")
 
     with m5:
-        st.caption("Corrente (A)")
+        st.caption("Vazão (l/h)")
         i30 = st.number_input("30s (A)", value=0.00, step=0.01, format="%.2f", key=f"i30_{idx}")
-        i1m = st.number_input("1min (A)", value=0.00, step=0.01, format="%.2f", key=f"i1m_{idx}")
+        i3m = st.number_input("1min (A)", value=0.00, step=0.01, format="%.2f", key=f"i1m_{idx}")
         i5m = st.number_input("5min (A)", value=0.00, step=0.01, format="%.2f", key=f"i5m_{idx}")
 
-    mv = round((v30 + v1m + v5m)/3, 1)
-    mp = round((p30 + p1m + p5m)/3, 2)
-    mpr = round((pr30 + pr1m + pr5m)/3, 1)
-    mvz = round((vz30 + vz1m + vz5m)/3, 0)
-    mi = round((i30 + i1m + i5m)/3, 2)
+    mv = round((v30 + v3m + v5m)/3, 1)
+    mp = round((p30 + p3m + p5m)/3, 2)
+    mpr = round((pr30 + pr3m + pr5m)/3, 1)
+    mvz = round((vz30 + vz3m + vz5m)/3, 0)
+    mi = round((i30 + i3m + i5m)/3, 2)
 
     fotos_uploaded = st.file_uploader(f"Anexar Imagens para {sample_id if sample_id else f'Amostra {idx+1}'}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
 
@@ -112,16 +112,16 @@ for idx in range(int(num_amostras)):
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
         "fotos": fotos_uploaded,
-        "v30": v30, "v1m": v1m, "v5m": v5m, "mv": mv,
-        "p30": p30, "p1m": p1m, "p5m": p5m, "mp": mp,
-        "pr30": pr30, "pr1m": pr1m, "pr5m": pr5m, "mpr": mpr,
-        "vz30": vz30, "vz1m": vz1m, "vz5m": vz5m, "mvz": mvz,
-        "i30": i30, "i1m": i1m, "i5m": i5m, "mi": mi
+        "v30": v30, "v3m": v3m, "v5m": v5m, "mv": mv,
+        "p30": p30, "p3m": p3m, "p5m": p5m, "mp": mp,
+        "pr30": pr30, "pr3m": pr3m, "pr5m": pr5m, "mpr": mpr,
+        "vz30": vz30, "vz3m": vz3m, "vz5m": vz5m, "mvz": mvz,
+        "i30": i30, "i3m": i3m, "i5m": i5m, "mi": mi
     })
     st.markdown("---")
 
 # BOTÃO DE GERAÇÃO DO WORD
-if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
+if st.button("GERAR RELATÓRIO KÄRCHER (.DOCX)", type="primary"):
     doc = docx.Document()
 
     # Margens e Rodapé Kärcher

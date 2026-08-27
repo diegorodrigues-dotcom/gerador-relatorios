@@ -130,7 +130,6 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
         
-        # Configura o Rodapé com o nome Kärcher
         footer = section.footer
         p_ft = footer.paragraphs[0]
         p_ft.alignment = WD_ALIGN_PARAGRAPH.RIGHT

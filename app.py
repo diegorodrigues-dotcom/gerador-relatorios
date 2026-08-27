@@ -31,10 +31,10 @@ with c1:
 
 with c2:
     item_testado = st.text_input("Item Testado", value="")
-
+    normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite as normas e critérios...")
 with c3:
     objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
-    normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite as normas e critérios...")
+    
 
 conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
     value="", 

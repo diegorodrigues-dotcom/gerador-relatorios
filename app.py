@@ -32,15 +32,16 @@ c1, c2, c3 = st.columns(3)
 
 with c1:
     codigo_st = st.text_input("Código ST", value="")
-    data_ensaio = st.text_input("Data do Teste", value="")
+    objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
+    
 
 with c2:
     tecnico = st.text_input("Técnico Responsável", value="")
 
 with c3:
     item_testado = st.text_input("Item Testado", value="")
-    objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
     normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite as normas e critérios...")
+    data_ensaio = st.text_input("Data do Teste", value="")
 
 conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
     value="", 

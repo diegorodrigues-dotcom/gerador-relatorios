@@ -15,7 +15,7 @@ from reportlab.lib import colors
 st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
 
 st.title("⚙️ Gerador de Relatórios Técnicos - Padrão Kärcher")
-st.subheader("Lavadoras de Alta Pressão e Aspiradores")
+st.subheader("Lavadoras de Alta Pressão")
 
 st.markdown("---")
 
@@ -32,14 +32,14 @@ c1, c2, c3 = st.columns(3)
 
 with c1:
     codigo_st = st.text_input("Código ST", value="")
-    tecnico = st.text_input("Técnico Responsável", value="")
     data_ensaio = st.text_input("Data do Teste", value="")
 
 with c2:
-    item_testado = st.text_input("Item Testado", value="")
+    tecnico = st.text_input("Técnico Responsável", value="")
     modelo_motobomba = st.text_input("Modelo Motobomba", value="")
 
 with c3:
+    item_testado = st.text_input("Item Testado", value="")
     objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
     normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite as normas e critérios...")
 

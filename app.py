@@ -39,7 +39,7 @@ with c3:
 
 conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
     value="", 
-    height=120,
+    height=80,
     placeholder="Digite aqui a conclusão e parecer técnico geral...")
 
 st.markdown("---")

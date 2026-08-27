@@ -56,7 +56,7 @@ for idx in range(int(num_amostras)):
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        sample_id = st.text_input(f"Sample ID", value=f"AM {idx+1}", key=f"id_{idx}")
+        sample_id = st.text_input(f"Sample ID", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
         voltagem_conexao = st.text_input("Voltagem / Conexão", value="", placeholder="Ex: 127V Engate Rápido", key=f"volt_{idx}")
     with col_b:
         partida = st.text_input("Partida a frio", value="", placeholder="Ex: 94V", key=f"part_{idx}")
@@ -64,38 +64,38 @@ for idx in range(int(num_amostras)):
     with col_c:
         defeitos_texto = st.text_area("Lista de Defeitos", value="", placeholder="1- Defeito A;\n2- Defeito B;", key=f"def_{idx}", height=100)
 
-    st.write(f"**Parâmetros de Teste Funcional - {sample_id}:**")
+    st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
     m1, m2, m3, m4, m5 = st.columns(5)
     
     with m1:
         st.caption("Tensão (V)")
-        v30 = st.number_input("30s (V)", value=0.0, key=f"v30_{idx}")
-        v1m = st.number_input("1min (V)", value=0.0, key=f"v1m_{idx}")
-        v5m = st.number_input("5min (V)", value=0.0, key=f"v5m_{idx}")
+        v30 = st.number_input("30s (V)", value=0.0, step=0.1, key=f"v30_{idx}")
+        v1m = st.number_input("1min (V)", value=0.0, step=0.1, key=f"v1m_{idx}")
+        v5m = st.number_input("5min (V)", value=0.0, step=0.1, key=f"v5m_{idx}")
 
     with m2:
         st.caption("Potência (kW)")
-        p30 = st.number_input("30s (kW)", value=0.0, key=f"p30_{idx}")
-        p1m = st.number_input("1min (kW)", value=0.0, key=f"p1m_{idx}")
-        p5m = st.number_input("5min (kW)", value=0.0, key=f"p5m_{idx}")
+        p30 = st.number_input("30s (kW)", value=0.00, step=0.01, format="%.2f", key=f"p30_{idx}")
+        p1m = st.number_input("1min (kW)", value=0.00, step=0.01, format="%.2f", key=f"p1m_{idx}")
+        p5m = st.number_input("5min (kW)", value=0.00, step=0.01, format="%.2f", key=f"p5m_{idx}")
 
     with m3:
         st.caption("Pressão bico")
-        pr30 = st.number_input("30s (Pr)", value=0.0, key=f"pr30_{idx}")
-        pr1m = st.number_input("1min (Pr)", value=0.0, key=f"pr1m_{idx}")
-        pr5m = st.number_input("5min (Pr)", value=0.0, key=f"pr5m_{idx}")
+        pr30 = st.number_input("30s (Pr)", value=0.0, step=0.1, key=f"pr30_{idx}")
+        pr1m = st.number_input("1min (Pr)", value=0.0, step=0.1, key=f"pr1m_{idx}")
+        pr5m = st.number_input("5min (Pr)", value=0.0, step=0.1, key=f"pr5m_{idx}")
 
     with m4:
         st.caption("Vazão (l/h)")
-        vz30 = st.number_input("30s (Vz)", value=0.0, key=f"vz30_{idx}")
-        vz1m = st.number_input("1min (Vz)", value=0.0, key=f"vz1m_{idx}")
-        vz5m = st.number_input("5min (Vz)", value=0.0, key=f"vz5m_{idx}")
+        vz30 = st.number_input("30s (Vz)", value=0.0, step=1.0, key=f"vz30_{idx}")
+        vz1m = st.number_input("1min (Vz)", value=0.0, step=1.0, key=f"vz1m_{idx}")
+        vz5m = st.number_input("5min (Vz)", value=0.0, step=1.0, key=f"vz5m_{idx}")
 
     with m5:
         st.caption("Corrente (A)")
-        i30 = st.number_input("30s (A)", value=0.0, key=f"i30_{idx}")
-        i1m = st.number_input("1min (A)", value=0.0, key=f"i1m_{idx}")
-        i5m = st.number_input("5min (A)", value=0.0, key=f"i5m_{idx}")
+        i30 = st.number_input("30s (A)", value=0.00, step=0.01, format="%.2f", key=f"i30_{idx}")
+        i1m = st.number_input("1min (A)", value=0.00, step=0.01, format="%.2f", key=f"i1m_{idx}")
+        i5m = st.number_input("5min (A)", value=0.00, step=0.01, format="%.2f", key=f"i5m_{idx}")
 
     mv = round((v30 + v1m + v5m)/3, 1)
     mp = round((p30 + p1m + p5m)/3, 2)
@@ -103,7 +103,7 @@ for idx in range(int(num_amostras)):
     mvz = round((vz30 + vz1m + vz5m)/3, 0)
     mi = round((i30 + i1m + i5m)/3, 2)
 
-    fotos_uploaded = st.file_uploader(f"Fotos para {sample_id}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
+    fotos_uploaded = st.file_uploader(f"Anexar Imagens para {sample_id if sample_id else f'Amostra {idx+1}'}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
 
     amostras_dados.append({
         "sample_id": sample_id,
@@ -200,7 +200,7 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
         hdr_row = tbl.rows[0]
         for col_i, h_text in enumerate(headers):
             cell = hdr_row.cells[col_i]
-            set_cell_background(cell, "FFED00") # Amarelo Kärcher no topo das tabelas de parâmetros
+            set_cell_background(cell, "FFED00") # Amarelo Kärcher no topo das tabelas
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(h_text)
@@ -251,7 +251,7 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
         doc.add_paragraph(am["defeitos"])
         doc.add_paragraph()
 
-    # MATRIZ FINAL DE DURABILIDADE E LEGENDA
+    # MATRIZ FINAL DE DURABILIDADE
     doc.add_paragraph().add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras").bold = True
     
     tbl_res = doc.add_table(rows=len(amostras_dados)+1, cols=4)

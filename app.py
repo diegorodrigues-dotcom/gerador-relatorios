@@ -36,7 +36,6 @@ with c1:
 
 with c2:
     tecnico = st.text_input("Técnico Responsável", value="")
-    modelo_motobomba = st.text_input("Modelo Motobomba", value="")
 
 with c3:
     item_testado = st.text_input("Item Testado", value="")

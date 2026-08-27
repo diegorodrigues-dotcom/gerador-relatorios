@@ -37,10 +37,10 @@ with c1:
 
 with c2:
     tecnico = st.text_input("Técnico Responsável", value="")
+    normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite os critérios / normas...")
 
 with c3:
     item_testado = st.text_input("Item Testado", value="")
-    normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite as normas e critérios...")
     data_ensaio = st.text_input("Data do Teste", value="")
 
 conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 

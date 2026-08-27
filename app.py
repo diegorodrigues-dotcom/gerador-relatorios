@@ -6,10 +6,10 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 import io
 
 # Configuração da página Web
-st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
+st.set_page_config(page_title="Gerador de Relatórios - Lavadoras de Alta Pressão", layout="wide", page_icon="⚙️")
 
-st.title("⚙️ Gerador de Relatórios Técnicos - Padrão Kärcher")
-st.subheader("Lavadoras de Alta Pressão e Aspiradores")
+st.title("⚙️ Gerador de Relatórios Técnicos - Lavadoras de Alta Pressão")
+st.subheader("Padrão Oficial Kärcher")
 
 st.markdown("---")
 
@@ -200,7 +200,7 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
         hdr_row = tbl.rows[0]
         for col_i, h_text in enumerate(headers):
             cell = hdr_row.cells[col_i]
-            set_cell_background(cell, "FFED00") # Amarelo Kärcher no topo das tabelas
+            set_cell_background(cell, "FFED00")
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(h_text)
@@ -281,6 +281,6 @@ if st.button("🚀 GERAR RELATÓRIO OFICIAL KÄRCHER (.DOCX)", type="primary"):
     st.download_button(
         label="📥 Baixar Relatório Word (.docx)",
         data=buffer,
-        file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Relatorio'}.docx",
+        file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Lavadora'}.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )

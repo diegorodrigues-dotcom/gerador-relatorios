@@ -129,11 +129,12 @@ for idx in range(int(num_amostras)):
 # ----------------------------------------------------
 # BOTÕES DE GERAÇÃO (DOCX e PDF)
 # ----------------------------------------------------
+st.header("3. Gerar e Baixar Relatório")
 col_btn1, col_btn2 = st.columns(2)
 
 # OPÇÃO 1: GERAR EM WORD (.DOCX)
 with col_btn1:
-    if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary"):
+    if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container_width=True):
         doc = docx.Document()
 
         for section in doc.sections:
@@ -286,12 +287,13 @@ with col_btn1:
             label="📥 Baixar Documento Word (.docx)",
             data=buffer,
             file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Lavadora'}.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True
         )
 
 # OPÇÃO 2: GERAR EM PDF (.PDF)
 with col_btn2:
-    if st.button("📄 GERAR RELATÓRIO PDF (.PDF)", type="secondary"):
+    if st.button("📄 GERAR RELATÓRIO PDF (.PDF)", type="secondary", use_container_width=True):
         pdf_buffer = io.BytesIO()
         pdf_doc = SimpleDocTemplate(pdf_buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
         
@@ -360,9 +362,23 @@ with col_btn2:
         elements.append(Paragraph("<b>2- Durabilidade conforme norma KN 082.023 cap. 4.7.1</b>", style_bold))
         for am in amostras_dados:
             elements.append(Paragraph(f"• {am['sample_id']} ({am['voltagem_conexao']})", style_normal))
+            
+            # Anexo de Imagens no PDF
+            if am["fotos"]:
+                img_list = []
+                for f_file in am["fotos"][:3]:
+                    img_stream = io.BytesIO(f_file.read())
+                    f_file.seek(0) # Reseta o ponteiro do arquivo
+                    rl_img = RLImage(img_stream, width=120, height=120)
+                    img_list.append(rl_img)
+                if img_list:
+                    t_imgs = Table([img_list])
+                    elements.append(t_imgs)
+                    elements.append(Spacer(1, 5))
+
             elements.append(Paragraph(f"Após {am['horas']} foram identificadas as falhas / defeitos:", style_normal))
             elements.append(Paragraph(am['defeitos'], style_normal))
-            elements.append(Spacer(1, 5))
+            elements.append(Spacer(1, 8))
 
         pdf_doc.build(elements)
         pdf_buffer.seek(0)
@@ -372,5 +388,6 @@ with col_btn2:
             label="📥 Baixar Documento PDF (.pdf)",
             data=pdf_buffer,
             file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Lavadora'}.pdf",
-            mime="application/pdf"
+            mime="application/pdf",
+            use_container_width=True
         )

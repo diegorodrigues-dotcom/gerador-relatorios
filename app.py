@@ -12,10 +12,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
 # Configuração da página Web
-st.set_page_config(page_title="Gerador de Relatórios - Lavadoras de Alta Pressão", layout="wide", page_icon="⚙️")
+st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
 
-st.title("⚙️ Gerador de Relatórios Técnicos - Lavadoras de Alta Pressão")
-st.subheader("Padrão Oficial Kärcher")
+st.title("⚙️ Gerador de Relatórios Técnicos - Padrão Kärcher")
+st.subheader("Lavadoras de Alta Pressão e Aspiradores")
 
 st.markdown("---")
 
@@ -127,9 +127,9 @@ for idx in range(int(num_amostras)):
     st.markdown("---")
 
 # ----------------------------------------------------
-# BOTÕES DE GERAÇÃO (DOCX e PDF)
+# SEÇÃO DE BOTÕES DE GERAÇÃO (DOCX e PDF)
 # ----------------------------------------------------
-st.header("3. Gerar e Baixar Relatório")
+st.header("3. Opções de Download do Relatório")
 col_btn1, col_btn2 = st.columns(2)
 
 # OPÇÃO 1: GERAR EM WORD (.DOCX)
@@ -137,6 +137,7 @@ with col_btn1:
     if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container_width=True):
         doc = docx.Document()
 
+        # Margens e Rodapé Kärcher
         for section in doc.sections:
             section.top_margin = Inches(0.8)
             section.bottom_margin = Inches(0.8)
@@ -150,6 +151,7 @@ with col_btn1:
             r_ft.font.size = Pt(8)
             r_ft.font.color.rgb = RGBColor(120, 120, 120)
 
+        # Bloco Limpo do Código ST
         tbl_top = doc.add_table(rows=1, cols=2)
         tbl_top.style = 'Table Grid'
         tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -166,6 +168,7 @@ with col_btn1:
 
         doc.add_paragraph()
 
+        # Tabela de Dados Gerais
         tbl_meta = doc.add_table(rows=6, cols=2)
         tbl_meta.style = 'Table Grid'
         tbl_meta.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -189,10 +192,12 @@ with col_btn1:
 
         doc.add_paragraph()
 
+        # Conclusão
         doc.add_paragraph().add_run("Conclusão").bold = True
         doc.add_paragraph(conclusao_texto)
         doc.add_paragraph()
 
+        # TABELAS DE PARÂMETROS CONFORME A QUANTIDADE DE AMOSTRAS
         doc.add_paragraph().add_run("1- Teste funcional Modelo " + modelo_motobomba).bold = True
 
         for am in amostras_dados:
@@ -208,7 +213,7 @@ with col_btn1:
             hdr_row = tbl.rows[0]
             for col_i, h_text in enumerate(headers):
                 cell = hdr_row.cells[col_i]
-                set_cell_background(cell, "FFED00")
+                set_cell_background(cell, "FFED00") # Amarelo Kärcher no topo das tabelas
                 p = cell.paragraphs[0]
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 r = p.add_run(h_text)
@@ -236,6 +241,7 @@ with col_btn1:
 
             doc.add_paragraph()
 
+        # ANÁLISE FOTOGRÁFICA
         doc.add_paragraph().add_run("2- Durabilidade conforme norma KN 082.023 cap. 4.7.1").bold = True
 
         for am in amostras_dados:
@@ -258,6 +264,7 @@ with col_btn1:
             doc.add_paragraph(am["defeitos"])
             doc.add_paragraph()
 
+        # MATRIZ FINAL DE DURABILIDADE
         doc.add_paragraph().add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras").bold = True
         
         tbl_res = doc.add_table(rows=len(amostras_dados)+1, cols=4)
@@ -278,6 +285,7 @@ with col_btn1:
             row.cells[2].paragraphs[0].add_run("60 h")
             row.cells[3].paragraphs[0].add_run("Identificadas no ensaio")
 
+        # Salvar e disponibilizar download Word
         buffer = io.BytesIO()
         doc.save(buffer)
         buffer.seek(0)
@@ -286,7 +294,7 @@ with col_btn1:
         st.download_button(
             label="📥 Baixar Documento Word (.docx)",
             data=buffer,
-            file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Lavadora'}.docx",
+            file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Relatorio'}.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             use_container_width=True
         )
@@ -304,6 +312,7 @@ with col_btn2:
         
         elements = []
 
+        # Tabela ST
         data_st = [[Paragraph("<b>ST</b>", style_title), Paragraph(codigo_st, style_title)]]
         t_st = Table(data_st, colWidths=[60, 480])
         t_st.setStyle(TableStyle([
@@ -313,6 +322,7 @@ with col_btn2:
         elements.append(t_st)
         elements.append(Spacer(1, 10))
 
+        # Tabela Informações Gerais
         meta_data = [
             [Paragraph("<b>Teste realizado por</b>", style_bold), Paragraph(tecnico, style_normal)],
             [Paragraph("<b>Data</b>", style_bold), Paragraph(data_ensaio, style_normal)],
@@ -330,17 +340,19 @@ with col_btn2:
         elements.append(t_meta)
         elements.append(Spacer(1, 10))
 
+        # Conclusão
         elements.append(Paragraph("<b>Conclusão</b>", style_bold))
         elements.append(Paragraph(conclusao_texto, style_normal))
         elements.append(Spacer(1, 10))
 
+        # Tabelas de Parâmetros
         elements.append(Paragraph(f"<b>1- Teste funcional Modelo {modelo_motobomba}</b>", style_bold))
         elements.append(Spacer(1, 5))
 
         for am in amostras_dados:
             elements.append(Paragraph(f"<b>Máquina com conexão {am['voltagem_conexao']}</b>", style_normal))
             
-            headers_pdf = ["Tempo de teste:", f"Partida a frio {am['partida']}", "Tensão (V)", "Potência (kW)", "Pressão bico", "Vazão (l/h)", "Corrente (A)", "Sample ID"]
+            headers_pdf = ["Tempo:", f"Partida {am['partida']}", "Tensão (V)", "Potência (kW)", "Pressão", "Vazão (l/h)", "Corrente (A)", "Sample ID"]
             
             param_data = [headers_pdf]
             param_data.append(["30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), am["sample_id"]])
@@ -348,10 +360,10 @@ with col_btn2:
             param_data.append(["5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), ""])
             param_data.append(["Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), ""])
 
-            t_param = Table(param_data, colWidths=[65, 75, 65, 65, 65, 65, 65, 75])
+            t_param = Table(param_data, colWidths=[55, 75, 65, 65, 65, 65, 65, 85])
             t_param.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#FFED00")),
+                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#FFED00")), # Amarelo Kärcher
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('FONTSIZE', (0,0), (-1,-1), 8),
@@ -359,17 +371,17 @@ with col_btn2:
             elements.append(t_param)
             elements.append(Spacer(1, 8))
 
+        # Fotos e Defeitos
         elements.append(Paragraph("<b>2- Durabilidade conforme norma KN 082.023 cap. 4.7.1</b>", style_bold))
         for am in amostras_dados:
             elements.append(Paragraph(f"• {am['sample_id']} ({am['voltagem_conexao']})", style_normal))
             
-            # Anexo de Imagens no PDF
             if am["fotos"]:
                 img_list = []
                 for f_file in am["fotos"][:3]:
                     img_stream = io.BytesIO(f_file.read())
-                    f_file.seek(0) # Reseta o ponteiro do arquivo
-                    rl_img = RLImage(img_stream, width=120, height=120)
+                    f_file.seek(0)
+                    rl_img = RLImage(img_stream, width=110, height=110)
                     img_list.append(rl_img)
                 if img_list:
                     t_imgs = Table([img_list])
@@ -380,6 +392,25 @@ with col_btn2:
             elements.append(Paragraph(am['defeitos'], style_normal))
             elements.append(Spacer(1, 8))
 
+        # Matriz Final em PDF
+        elements.append(Paragraph("<b>Resumo das informações de defeitos e durabilidade apresentadas pelas amostras</b>", style_bold))
+        elements.append(Spacer(1, 5))
+        
+        res_data = [["Amostra", "Tempo de teste", "Vida útil esperada", "Falhas apresentadas"]]
+        for am in amostras_dados:
+            res_data.append([am["sample_id"], am["horas"], "60 h", "Identificadas no ensaio"])
+            
+        t_res = Table(res_data, colWidths=[100, 100, 100, 240])
+        t_res.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#FFED00")),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTSIZE', (0,0), (-1,-1), 8),
+        ]))
+        elements.append(t_res)
+
+        # Construção e download PDF
         pdf_doc.build(elements)
         pdf_buffer.seek(0)
 
@@ -387,7 +418,7 @@ with col_btn2:
         st.download_button(
             label="📥 Baixar Documento PDF (.pdf)",
             data=pdf_buffer,
-            file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Lavadora'}.pdf",
+            file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Relatorio'}.pdf",
             mime="application/pdf",
             use_container_width=True
         )

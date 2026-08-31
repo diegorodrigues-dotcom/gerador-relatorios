@@ -33,10 +33,9 @@ c1, c2, c3 = st.columns(3)
 with c1:
     codigo_st = st.text_input("ST", value="", placeholder="Ex: 001941")
     objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
-    
 
 with c2:
-    tecnico = st.text_input("Responsável", value="", placeholder=" Digite seu nome...")
+    tecnico = st.text_input("Responsável", value="", placeholder="Digite seu nome...")
     normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite os critérios / normas...")
 
 with c3:
@@ -58,17 +57,18 @@ num_amostras = st.number_input("Quantidade de Amostras", min_value=1, value=1)
 amostras_dados = []
 
 for idx in range(int(num_amostras)):
+    # SEM O # NA AMOSTRA:
     st.markdown(f"### Amostra {idx+1}")
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
         sample_id = st.text_input(f"Sample ID", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
-        tensão = st.text_input("Tensão", value="", placeholder="127V / 220V", key=f"volt_{idx}")
+        voltagem_conexao = st.text_input("Tensão", value="", placeholder="127V / 220V", key=f"volt_{idx}")
     with col_b:
-        partida = st.text_input("Partida a frio", value="", placeholder="Ex: 94V", key=f"part_{idx}")
+        partida = st.text_input("Partida a frio", value="", placeholder="94V / 187V", key=f"part_{idx}")
         horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h", key=f"h_{idx}")
     with col_c:
-        defeitos_texto = st.text_area("Lista de Defeitos", value="", placeholder="1- Defeito A;\n2- Defeito B;", key=f"def_{idx}", height=100)
+        defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
 
     st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
     m1, m2, m3, m4, m5 = st.columns(5)
@@ -137,7 +137,6 @@ with col_btn1:
     if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container_width=True):
         doc = docx.Document()
 
-        # Margens e Rodapé Kärcher
         for section in doc.sections:
             section.top_margin = Inches(0.8)
             section.bottom_margin = Inches(0.8)
@@ -151,7 +150,6 @@ with col_btn1:
             r_ft.font.size = Pt(8)
             r_ft.font.color.rgb = RGBColor(120, 120, 120)
 
-        # Bloco Limpo do Código ST
         tbl_top = doc.add_table(rows=1, cols=2)
         tbl_top.style = 'Table Grid'
         tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -168,7 +166,6 @@ with col_btn1:
 
         doc.add_paragraph()
 
-        # Tabela de Dados Gerais
         tbl_meta = doc.add_table(rows=6, cols=2)
         tbl_meta.style = 'Table Grid'
         tbl_meta.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -192,13 +189,11 @@ with col_btn1:
 
         doc.add_paragraph()
 
-        # Conclusão
         doc.add_paragraph().add_run("Conclusão").bold = True
         doc.add_paragraph(conclusao_texto)
         doc.add_paragraph()
 
-        # TABELAS DE PARÂMETROS CONFORME A QUANTIDADE DE AMOSTRAS
-        doc.add_paragraph().add_run("1- Teste funcional Modelo " + modelo_motobomba).bold = True
+        doc.add_paragraph().add_run("1- Teste funcional de Parâmetros").bold = True
 
         for am in amostras_dados:
             p_sub = doc.add_paragraph()
@@ -213,7 +208,7 @@ with col_btn1:
             hdr_row = tbl.rows[0]
             for col_i, h_text in enumerate(headers):
                 cell = hdr_row.cells[col_i]
-                set_cell_background(cell, "FFED00") # Amarelo Kärcher no topo das tabelas
+                set_cell_background(cell, "FFED00")
                 p = cell.paragraphs[0]
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 r = p.add_run(h_text)
@@ -241,7 +236,6 @@ with col_btn1:
 
             doc.add_paragraph()
 
-        # ANÁLISE FOTOGRÁFICA
         doc.add_paragraph().add_run("2- Durabilidade conforme norma KN 082.023 cap. 4.7.1").bold = True
 
         for am in amostras_dados:
@@ -264,7 +258,6 @@ with col_btn1:
             doc.add_paragraph(am["defeitos"])
             doc.add_paragraph()
 
-        # MATRIZ FINAL DE DURABILIDADE
         doc.add_paragraph().add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras").bold = True
         
         tbl_res = doc.add_table(rows=len(amostras_dados)+1, cols=4)
@@ -285,7 +278,6 @@ with col_btn1:
             row.cells[2].paragraphs[0].add_run("60 h")
             row.cells[3].paragraphs[0].add_run("Identificadas no ensaio")
 
-        # Salvar e disponibilizar download Word
         buffer = io.BytesIO()
         doc.save(buffer)
         buffer.seek(0)
@@ -312,7 +304,6 @@ with col_btn2:
         
         elements = []
 
-        # Tabela ST
         data_st = [[Paragraph("<b>ST</b>", style_title), Paragraph(codigo_st, style_title)]]
         t_st = Table(data_st, colWidths=[60, 480])
         t_st.setStyle(TableStyle([
@@ -322,7 +313,6 @@ with col_btn2:
         elements.append(t_st)
         elements.append(Spacer(1, 10))
 
-        # Tabela Informações Gerais
         meta_data = [
             [Paragraph("<b>Teste realizado por</b>", style_bold), Paragraph(tecnico, style_normal)],
             [Paragraph("<b>Data</b>", style_bold), Paragraph(data_ensaio, style_normal)],
@@ -340,13 +330,11 @@ with col_btn2:
         elements.append(t_meta)
         elements.append(Spacer(1, 10))
 
-        # Conclusão
         elements.append(Paragraph("<b>Conclusão</b>", style_bold))
         elements.append(Paragraph(conclusao_texto, style_normal))
         elements.append(Spacer(1, 10))
 
-        # Tabelas de Parâmetros
-        elements.append(Paragraph(f"<b>1- Teste funcional Modelo {modelo_motobomba}</b>", style_bold))
+        elements.append(Paragraph("<b>1- Teste funcional de Parâmetros</b>", style_bold))
         elements.append(Spacer(1, 5))
 
         for am in amostras_dados:
@@ -363,7 +351,7 @@ with col_btn2:
             t_param = Table(param_data, colWidths=[55, 75, 65, 65, 65, 65, 65, 85])
             t_param.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#FFED00")), # Amarelo Kärcher
+                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#FFED00")),
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('FONTSIZE', (0,0), (-1,-1), 8),
@@ -371,7 +359,6 @@ with col_btn2:
             elements.append(t_param)
             elements.append(Spacer(1, 8))
 
-        # Fotos e Defeitos
         elements.append(Paragraph("<b>2- Durabilidade conforme norma KN 082.023 cap. 4.7.1</b>", style_bold))
         for am in amostras_dados:
             elements.append(Paragraph(f"• {am['sample_id']} ({am['voltagem_conexao']})", style_normal))
@@ -392,7 +379,6 @@ with col_btn2:
             elements.append(Paragraph(am['defeitos'], style_normal))
             elements.append(Spacer(1, 8))
 
-        # Matriz Final em PDF
         elements.append(Paragraph("<b>Resumo das informações de defeitos e durabilidade apresentadas pelas amostras</b>", style_bold))
         elements.append(Spacer(1, 5))
         
@@ -410,7 +396,6 @@ with col_btn2:
         ]))
         elements.append(t_res)
 
-        # Construção e download PDF
         pdf_doc.build(elements)
         pdf_buffer.seek(0)
 

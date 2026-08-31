@@ -18,7 +18,7 @@ from reportlab.pdfgen import canvas
 st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
 
 st.title("⚙️ Gerador de Relatórios Técnicos - Padrão Kärcher")
-st.subheader("Lavadoras de Alta Pressão")
+st.subheader("Lavadoras de Alta Pressão e Equipamentos Motorizados")
 
 st.markdown("---")
 
@@ -112,7 +112,13 @@ st.markdown("---")
 # 2. CADASTRO DINÂMICO DE AMOSTRAS E MEDIÇÕES
 st.header("2. Cadastro de Amostras (Medições, Fotos e Defeitos)")
 
-num_amostras = st.number_input("Quantidade de Amostras", min_value=1, value=1)
+c_quant, c_rpm_opt = st.columns([1, 1])
+
+with c_quant:
+    num_amostras = st.number_input("Quantidade de Amostras", min_value=1, value=1)
+
+with c_rpm_opt:
+    incluir_rpm = st.selectbox("Equipamento possui medição de RPM?", ["Não", "Sim"]) == "Sim"
 
 amostras_dados = []
 
@@ -130,50 +136,67 @@ for idx in range(int(num_amostras)):
         defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
 
     st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
-    m1, m2, m3, m4, m5 = st.columns(5)
+    
+    if incluir_rpm:
+        m1, m2, m3, m4, m5, m6 = st.columns(6)
+    else:
+        m1, m2, m3, m4, m5 = st.columns(5)
     
     with m1:
         st.caption("Tensão (V)")
         v30 = st.text_input("30s (V)", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
-        v1m = st.text_input("1min (V)", value="", placeholder="Ex: 128.0", key=f"v1m_{idx}")
+        v3m = st.text_input("3min (V)", value="", placeholder="Ex: 128.0", key=f"v3m_{idx}")
         v5m = st.text_input("5min (V)", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
 
     with m2:
         st.caption("Potência (kW)")
         p30 = st.text_input("30s (kW)", value="", placeholder="Ex: 1.53", key=f"p30_{idx}")
-        p1m = st.text_input("1min (kW)", value="", placeholder="Ex: 1.55", key=f"p1m_{idx}")
+        p3m = st.text_input("3min (kW)", value="", placeholder="Ex: 1.55", key=f"p3m_{idx}")
         p5m = st.text_input("5min (kW)", value="", placeholder="Ex: 1.50", key=f"p5m_{idx}")
 
     with m3:
         st.caption("Pressão bico")
         pr30 = st.text_input("30s (Pr)", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
-        pr1m = st.text_input("1min (Pr)", value="", placeholder="Ex: 94.0", key=f"pr1m_{idx}")
+        pr3m = st.text_input("3min (Pr)", value="", placeholder="Ex: 94.0", key=f"pr3m_{idx}")
         pr5m = st.text_input("5min (Pr)", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
 
     with m4:
         st.caption("Vazão (l/h)")
         vz30 = st.text_input("30s (Vz)", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
-        vz1m = st.text_input("1min (Vz)", value="", placeholder="Ex: 296", key=f"vz1m_{idx}")
+        vz3m = st.text_input("3min (Vz)", value="", placeholder="Ex: 296", key=f"vz3m_{idx}")
         vz5m = st.text_input("5min (Vz)", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
 
     with m5:
         st.caption("Corrente (A)")
         i30 = st.text_input("30s (A)", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
-        i1m = st.text_input("1min (A)", value="", placeholder="Ex: 12.60", key=f"i1m_{idx}")
+        i3m = st.text_input("3min (A)", value="", placeholder="Ex: 12.60", key=f"i3m_{idx}")
         i5m = st.text_input("5min (A)", value="", placeholder="Ex: 12.38", key=f"i5m_{idx}")
 
+    rpm30, rpm3m, rpm5m, mrpm = "", "", "", ""
+    if incluir_rpm:
+        with m6:
+            st.caption("RPM (rpm)")
+            rpm30 = st.text_input("30s (RPM)", value="", placeholder="Ex: 3450", key=f"rpm30_{idx}")
+            rpm3m = st.text_input("3min (RPM)", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
+            rpm5m = st.text_input("5min (RPM)", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
+
     # CÁLCULO DE MÉDIAS
-    num_v = [safe_float(v30), safe_float(v1m), safe_float(v5m)]
-    num_p = [safe_float(p30), safe_float(p1m), safe_float(p5m)]
-    num_pr = [safe_float(pr30), safe_float(pr1m), safe_float(pr5m)]
-    num_vz = [safe_float(vz30), safe_float(vz1m), safe_float(vz5m)]
-    num_i = [safe_float(i30), safe_float(i1m), safe_float(i5m)]
+    num_v = [safe_float(v30), safe_float(v3m), safe_float(v5m)]
+    num_p = [safe_float(p30), safe_float(p3m), safe_float(p5m)]
+    num_pr = [safe_float(pr30), safe_float(pr3m), safe_float(pr5m)]
+    num_vz = [safe_float(vz30), safe_float(vz3m), safe_float(vz5m)]
+    num_i = [safe_float(i30), safe_float(i3m), safe_float(i5m)]
 
     mv = round(sum(num_v)/3, 1) if any(num_v) else ""
     mp = round(sum(num_p)/3, 2) if any(num_p) else ""
     mpr = round(sum(num_pr)/3, 1) if any(num_pr) else ""
     mvz = round(sum(num_vz)/3, 0) if any(num_vz) else ""
     mi = round(sum(num_i)/3, 2) if any(num_i) else ""
+
+    if incluir_rpm:
+        num_rpm = [safe_float(rpm30), safe_float(rpm3m), safe_float(rpm5m)]
+        calc_mrpm = round(sum(num_rpm)/3, 0) if any(num_rpm) else ""
+        mrpm = str(int(calc_mrpm)) if calc_mrpm != "" else ""
 
     fotos_uploaded = st.file_uploader(f"Anexar Imagens para {sample_id if sample_id else f'Amostra {idx+1}'}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
 
@@ -184,11 +207,12 @@ for idx in range(int(num_amostras)):
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
         "fotos": fotos_uploaded,
-        "v30": v30, "v1m": v1m, "v5m": v5m, "mv": str(mv) if mv != "" else "",
-        "p30": p30, "p1m": p1m, "p5m": p5m, "mp": str(mp) if mp != "" else "",
-        "pr30": pr30, "pr1m": pr1m, "pr5m": pr5m, "mpr": str(mpr) if mpr != "" else "",
-        "vz30": vz30, "vz1m": vz1m, "vz5m": vz5m, "mvz": str(int(mvz)) if mvz != "" else "",
-        "i30": i30, "i1m": i1m, "i5m": i5m, "mi": str(mi) if mi != "" else ""
+        "v30": v30, "v3m": v3m, "v5m": v5m, "mv": str(mv) if mv != "" else "",
+        "p30": p30, "p3m": p3m, "p5m": p5m, "mp": str(mp) if mp != "" else "",
+        "pr30": pr30, "pr3m": pr3m, "pr5m": pr5m, "mpr": str(mpr) if mpr != "" else "",
+        "vz30": vz30, "vz3m": vz3m, "vz5m": vz5m, "mvz": str(int(mvz)) if mvz != "" else "",
+        "i30": i30, "i3m": i3m, "i5m": i5m, "mi": str(mi) if mi != "" else "",
+        "rpm30": rpm30, "rpm3m": rpm3m, "rpm5m": rpm5m, "mrpm": mrpm
     })
     st.markdown("---")
 
@@ -314,11 +338,27 @@ with col_btn1:
             p_sub = doc.add_paragraph()
             p_sub.add_run(f"Máquina com conexão {am['voltagem_conexao']}").bold = True
             
-            tbl = doc.add_table(rows=5, cols=8)
+            num_cols = 9 if incluir_rpm else 8
+            tbl = doc.add_table(rows=5, cols=num_cols)
             tbl.style = 'Table Grid'
             tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
 
-            headers = ["Tempo de teste:", f"Partida a frio {am['partida']}", "Tensão (V) - 60 Hz", "Potência absorvida (kW)", "Pressão com bico", "Vazão (l/h)", "Corrente (A)", "Sample ID"]
+            if incluir_rpm:
+                headers = ["Tempo de teste:", f"Partida a frio {am['partida']}", "Tensão (V) - 60 Hz", "Potência absorvida (kW)", "Pressão com bico", "Vazão (l/h)", "Corrente (A)", "RPM (rpm)", "Sample ID"]
+                rows_data = [
+                    ("30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), str(am["rpm30"]), am["sample_id"]),
+                    ("3 min", "", str(am["v3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["i3m"]), str(am["rpm3m"]), ""),
+                    ("5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), str(am["rpm5m"]), ""),
+                    ("Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), str(am["mrpm"]), "")
+                ]
+            else:
+                headers = ["Tempo de teste:", f"Partida a frio {am['partida']}", "Tensão (V) - 60 Hz", "Potência absorvida (kW)", "Pressão com bico", "Vazão (l/h)", "Corrente (A)", "Sample ID"]
+                rows_data = [
+                    ("30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), am["sample_id"]),
+                    ("3 min", "", str(am["v3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["i3m"]), ""),
+                    ("5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), ""),
+                    ("Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), "")
+                ]
             
             hdr_row = tbl.rows[0]
             for col_i, h_text in enumerate(headers):
@@ -328,28 +368,22 @@ with col_btn1:
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 r = p.add_run(h_text)
                 r.bold = True
-                r.font.size = Pt(8.5)
+                r.font.size = Pt(8.0 if incluir_rpm else 8.5)
                 r.font.color.rgb = RGBColor(0, 0, 0)
-
-            rows_data = [
-                ("30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), am["sample_id"]),
-                ("1 min", "", str(am["v1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["i1m"]), ""),
-                ("5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), ""),
-                ("Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), "")
-            ]
 
             for r_idx, r_vals in enumerate(rows_data):
                 row = tbl.rows[r_idx + 1]
                 for c_idx, val in enumerate(r_vals):
                     cell = row.cells[c_idx]
                     
-                    if r_vals[0] == "Média" and c_idx in [0, 2, 3, 4, 5, 6]:
+                    # Destaca a linha de média em cinza
+                    if r_vals[0] == "Média" and c_idx in ([0] + list(range(2, num_cols-1))):
                         set_cell_background(cell, "A6A6A6")
                         
                     p = cell.paragraphs[0]
                     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                     r = p.add_run(val)
-                    r.font.size = Pt(9)
+                    r.font.size = Pt(8.5 if incluir_rpm else 9.0)
                     if r_vals[0] == "Média":
                         r.bold = True
 
@@ -471,22 +505,31 @@ with col_btn2:
         for am in amostras_dados:
             elements.append(Paragraph(f"<b>Máquina com conexão {am['voltagem_conexao']}</b>", style_normal))
             
-            headers_pdf = ["Tempo:", f"Partida {am['partida']}", "Tensão (V)", "Potência (kW)", "Pressão", "Vazão (l/h)", "Corrente (A)", "Sample ID"]
-            
-            param_data = [headers_pdf]
-            param_data.append(["30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), am["sample_id"]])
-            param_data.append(["1 min", "", str(am["v1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["i1m"]), ""])
-            param_data.append(["5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), ""])
-            param_data.append(["Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), ""])
+            if incluir_rpm:
+                headers_pdf = ["Tempo:", f"Partida {am['partida']}", "Tensão (V)", "Potência (kW)", "Pressão", "Vazão (l/h)", "Corrente (A)", "RPM", "Sample ID"]
+                param_data = [headers_pdf]
+                param_data.append(["30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), str(am["rpm30"]), am["sample_id"]])
+                param_data.append(["3 min", "", str(am["v3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["i3m"]), str(am["rpm3m"]), ""])
+                param_data.append(["5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), str(am["rpm5m"]), ""])
+                param_data.append(["Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), str(am["mrpm"]), ""])
+                col_widths = [50, 65, 55, 60, 55, 55, 60, 55, 85]
+            else:
+                headers_pdf = ["Tempo:", f"Partida {am['partida']}", "Tensão (V)", "Potência (kW)", "Pressão", "Vazão (l/h)", "Corrente (A)", "Sample ID"]
+                param_data = [headers_pdf]
+                param_data.append(["30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), am["sample_id"]])
+                param_data.append(["3 min", "", str(am["v3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["i3m"]), ""])
+                param_data.append(["5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), ""])
+                param_data.append(["Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), ""])
+                col_widths = [55, 75, 65, 65, 65, 65, 65, 85]
 
-            t_param = Table(param_data, colWidths=[55, 75, 65, 65, 65, 65, 65, 85])
+            t_param = Table(param_data, colWidths=col_widths)
             t_param.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 0.5, colors.black),
                 ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#A6A6A6")),
                 ('BACKGROUND', (0,-1), (-2,-1), colors.HexColor("#A6A6A6")),
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-                ('FONTSIZE', (0,0), (-1,-1), 8),
+                ('FONTSIZE', (0,0), (-1,-1), 7.5 if incluir_rpm else 8),
             ]))
             elements.append(t_param)
             elements.append(Spacer(1, 8))

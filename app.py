@@ -47,6 +47,15 @@ def add_field(paragraph, field_type):
     r.append(fldChar2)
     r.append(fldChar3)
 
+def safe_float(val):
+    """Converte texto digitado para float de forma segura para cálculo da média"""
+    try:
+        if not val:
+            return 0.0
+        return float(str(val).replace(',', '.'))
+    except ValueError:
+        return 0.0
+
 # Classe Canvas para numerar páginas no PDF dinamicamente
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -125,39 +134,46 @@ for idx in range(int(num_amostras)):
     
     with m1:
         st.caption("Tensão (V)")
-        v30 = st.number_input("30s (V)", value=, step=0.1, key=f"v30_{idx}")
-        v1m = st.number_input("1min (V)", value=, step=0.1, key=f"v1m_{idx}")
-        v5m = st.number_input("5min (V)", value=, step=0.1, key=f"v5m_{idx}")
+        v30 = st.text_input("30s (V)", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
+        v1m = st.text_input("1min (V)", value="", placeholder="Ex: 128.0", key=f"v1m_{idx}")
+        v5m = st.text_input("5min (V)", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
 
     with m2:
         st.caption("Potência (kW)")
-        p30 = st.number_input("30s (kW)", value=, step=0.01, format="%.2f", key=f"p30_{idx}")
-        p1m = st.number_input("1min (kW)", value=, step=0.01, format="%.2f", key=f"p1m_{idx}")
-        p5m = st.number_input("5min (kW)", value=, step=0.01, format="%.2f", key=f"p5m_{idx}")
+        p30 = st.text_input("30s (kW)", value="", placeholder="Ex: 1.53", key=f"p30_{idx}")
+        p1m = st.text_input("1min (kW)", value="", placeholder="Ex: 1.55", key=f"p1m_{idx}")
+        p5m = st.text_input("5min (kW)", value="", placeholder="Ex: 1.50", key=f"p5m_{idx}")
 
     with m3:
         st.caption("Pressão bico")
-        pr30 = st.number_input("30s (Pr)", value=, step=0.1, key=f"pr30_{idx}")
-        pr1m = st.number_input("1min (Pr)", value=, step=0.1, key=f"pr1m_{idx}")
-        pr5m = st.number_input("5min (Pr)", value=, step=0.1, key=f"pr5m_{idx}")
+        pr30 = st.text_input("30s (Pr)", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
+        pr1m = st.text_input("1min (Pr)", value="", placeholder="Ex: 94.0", key=f"pr1m_{idx}")
+        pr5m = st.text_input("5min (Pr)", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
 
     with m4:
         st.caption("Vazão (l/h)")
-        vz30 = st.number_input("30s (Vz)", value=, step=1.0, key=f"vz30_{idx}")
-        vz1m = st.number_input("1min (Vz)", value=, step=1.0, key=f"vz1m_{idx}")
-        vz5m = st.number_input("5min (Vz)", value=, step=1.0, key=f"vz5m_{idx}")
+        vz30 = st.text_input("30s (Vz)", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
+        vz1m = st.text_input("1min (Vz)", value="", placeholder="Ex: 296", key=f"vz1m_{idx}")
+        vz5m = st.text_input("5min (Vz)", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
 
     with m5:
         st.caption("Corrente (A)")
-        i30 = st.number_input("30s (A)", value=, step=0.01, format="%.2f", key=f"i30_{idx}")
-        i1m = st.number_input("1min (A)", value=, step=0.01, format="%.2f", key=f"i1m_{idx}")
-        i5m = st.number_input("5min (A)", value=, step=0.01, format="%.2f", key=f"i5m_{idx}")
+        i30 = st.text_input("30s (A)", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
+        i1m = st.text_input("1min (A)", value="", placeholder="Ex: 12.60", key=f"i1m_{idx}")
+        i5m = st.text_input("5min (A)", value="", placeholder="Ex: 12.38", key=f"i5m_{idx}")
 
-    mv = round((v30 + v1m + v5m)/3, 1)
-    mp = round((p30 + p1m + p5m)/3, 2)
-    mpr = round((pr30 + pr1m + pr5m)/3, 1)
-    mvz = round((vz30 + vz1m + vz5m)/3, 0)
-    mi = round((i30 + i1m + i5m)/3, 2)
+    # CÁLCULO DE MÉDIAS
+    num_v = [safe_float(v30), safe_float(v1m), safe_float(v5m)]
+    num_p = [safe_float(p30), safe_float(p1m), safe_float(p5m)]
+    num_pr = [safe_float(pr30), safe_float(pr1m), safe_float(pr5m)]
+    num_vz = [safe_float(vz30), safe_float(vz1m), safe_float(vz5m)]
+    num_i = [safe_float(i30), safe_float(i1m), safe_float(i5m)]
+
+    mv = round(sum(num_v)/3, 1) if any(num_v) else ""
+    mp = round(sum(num_p)/3, 2) if any(num_p) else ""
+    mpr = round(sum(num_pr)/3, 1) if any(num_pr) else ""
+    mvz = round(sum(num_vz)/3, 0) if any(num_vz) else ""
+    mi = round(sum(num_i)/3, 2) if any(num_i) else ""
 
     fotos_uploaded = st.file_uploader(f"Anexar Imagens para {sample_id if sample_id else f'Amostra {idx+1}'}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
 
@@ -168,11 +184,11 @@ for idx in range(int(num_amostras)):
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
         "fotos": fotos_uploaded,
-        "v30": v30, "v1m": v1m, "v5m": v5m, "mv": mv,
-        "p30": p30, "p1m": p1m, "p5m": p5m, "mp": mp,
-        "pr30": pr30, "pr1m": pr1m, "pr5m": pr5m, "mpr": mpr,
-        "vz30": vz30, "vz1m": vz1m, "vz5m": vz5m, "mvz": mvz,
-        "i30": i30, "i1m": i1m, "i5m": i5m, "mi": mi
+        "v30": v30, "v1m": v1m, "v5m": v5m, "mv": str(mv) if mv != "" else "",
+        "p30": p30, "p1m": p1m, "p5m": p5m, "mp": str(mp) if mp != "" else "",
+        "pr30": pr30, "pr1m": pr1m, "pr5m": pr5m, "mpr": str(mpr) if mpr != "" else "",
+        "vz30": vz30, "vz1m": vz1m, "vz5m": vz5m, "mvz": str(int(mvz)) if mvz != "" else "",
+        "i30": i30, "i1m": i1m, "i5m": i5m, "mi": str(mi) if mi != "" else ""
     })
     st.markdown("---")
 
@@ -307,7 +323,7 @@ with col_btn1:
             hdr_row = tbl.rows[0]
             for col_i, h_text in enumerate(headers):
                 cell = hdr_row.cells[col_i]
-                set_cell_background(cell, "A6A6A6") # Fundo Cinza Escuro no Cabeçalho
+                set_cell_background(cell, "A6A6A6")
                 p = cell.paragraphs[0]
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 r = p.add_run(h_text)
@@ -327,7 +343,6 @@ with col_btn1:
                 for c_idx, val in enumerate(r_vals):
                     cell = row.cells[c_idx]
                     
-                    # Se for a linha de Média, pinta o fundo de cinza igual à imagem
                     if r_vals[0] == "Média" and c_idx in [0, 2, 3, 4, 5, 6]:
                         set_cell_background(cell, "A6A6A6")
                         
@@ -370,7 +385,7 @@ with col_btn1:
         headers_res = ["Amostra", "Tempo de teste", "Vida útil esperada", "Falhas apresentadas"]
         for c_i, h_txt in enumerate(headers_res):
             cell = tbl_res.rows[0].cells[c_i]
-            set_cell_background(cell, "A6A6A6") # Fundo Cinza Escuro
+            set_cell_background(cell, "A6A6A6")
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.add_run(h_txt).bold = True
@@ -467,7 +482,7 @@ with col_btn2:
             t_param = Table(param_data, colWidths=[55, 75, 65, 65, 65, 65, 65, 85])
             t_param.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#A6A6A6")), # Cinza nas tabelas PDF
+                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#A6A6A6")),
                 ('BACKGROUND', (0,-1), (-2,-1), colors.HexColor("#A6A6A6")),
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),

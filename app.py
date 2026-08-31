@@ -182,10 +182,10 @@ for idx in range(int(num_amostras)):
     rpm30, rpm3m, rpm5m, mrpm = "", "", "", ""
     if incluir_rpm:
         with m6:
-            st.caption("RPM (rpm)")
-            rpm30 = st.text_input("30s (RPM)", value="", placeholder="Ex: 3450", key=f"rpm30_{idx}")
-            rpm3m = st.text_input("3min (RPM)", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
-            rpm5m = st.text_input("5min (RPM)", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
+            st.caption("RPM")
+            rpm30 = st.text_input("30s (rpm)", value="", placeholder="Ex: 3450", key=f"rpm30_{idx}")
+            rpm3m = st.text_input("3min (rpm)", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
+            rpm5m = st.text_input("5min (rpm)", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
 
     # CÁLCULO DE MÉDIAS
     num_v = [safe_float(v30), safe_float(v3m), safe_float(v5m)]

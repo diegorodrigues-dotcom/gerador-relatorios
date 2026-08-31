@@ -3,6 +3,8 @@ import docx
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 import io
 
 import reportlab
@@ -10,6 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
+from reportlab.pdfgen import canvas
 
 # Configuração da página Web
 st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
@@ -25,6 +28,54 @@ def set_cell_background(cell, fill_hex):
     tcPr = cell._tc.get_or_add_tcPr()
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
+
+def add_field(paragraph, field_type):
+    run = paragraph.add_run()
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = field_type
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'separate')
+    fldChar3 = OxmlElement('w:fldChar')
+    fldChar3.set(qn('w:fldCharType'), 'end')
+    
+    r = run._r
+    r.append(fldChar1)
+    r.append(instrText)
+    r.append(fldChar2)
+    r.append(fldChar3)
+
+# Classe Canvas para numerar páginas no PDF dinamicamente
+class NumberedCanvas(canvas.Canvas):
+    def __init__(self, *args, **kwargs):
+        super(NumberedCanvas, self).__init__(*args, **kwargs)
+        self._saved_page_states = []
+
+    def showPage(self):
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        num_pages = len(self._saved_page_states)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            self.draw_page_number(num_pages)
+            canvas.Canvas.showPage(self)
+        canvas.Canvas.save(self)
+
+    def draw_page_number(self, page_count):
+        self.setFont("Helvetica", 8)
+        self.setFillColor(colors.HexColor("#333333"))
+        
+        st_text = f"ST {self.codigo_st}" if self.codigo_st else "ST"
+        page_text = f"Folha {self._pageNumber} de {page_count}"
+        item_text = self.item_testado if self.item_testado else ""
+        
+        self.drawString(36, 25, st_text)
+        self.drawCentredString(306, 25, page_text)
+        self.drawRightString(576, 25, item_text)
 
 # 1. CABEÇALHO / IDENTIFICAÇÃO GERAL
 st.header("1. Informações Gerais do Ensaio")
@@ -144,14 +195,36 @@ with col_btn1:
             
             footer = section.footer
             p_ft = footer.paragraphs[0]
-            p_ft.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-            r_ft = p_ft.add_run("KÄRCHER - Relatório Técnico de Ensaio e Qualidade")
-            r_ft.font.size = Pt(8)
-            r_ft.font.color.rgb = RGBColor(120, 120, 120)
+            p_ft.text = ""
+            
+            tbl_ft = footer.add_table(1, 3, Inches(6.9))
+            tbl_ft.alignment = WD_TABLE_ALIGNMENT.CENTER
+            
+            c_st_ft, c_page_ft, c_item_ft = tbl_ft.rows[0].cells[0], tbl_ft.rows[0].cells[1], tbl_ft.rows[0].cells[2]
+            c_st_ft.width, c_page_ft.width, c_item_ft.width = Inches(2.3), Inches(2.3), Inches(2.3)
+            
+            p_st_ft = c_st_ft.paragraphs[0]
+            r_st = p_st_ft.add_run(f"ST {codigo_st}" if codigo_st else "ST")
+            r_st.font.size = Pt(8.5)
+            r_st.font.color.rgb = RGBColor(50, 50, 50)
+            
+            p_page = c_page_ft.paragraphs[0]
+            p_page.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            r_p1 = p_page.add_run("Folha ")
+            r_p1.font.size = Pt(8.5)
+            r_p1.font.color.rgb = RGBColor(50, 50, 50)
+            add_field(p_page, 'PAGE')
+            r_p2 = p_page.add_run(" de ")
+            r_p2.font.size = Pt(8.5)
+            r_p2.font.color.rgb = RGBColor(50, 50, 50)
+            add_field(p_page, 'NUMPAGES')
+            
+            p_item = c_item_ft.paragraphs[0]
+            p_item.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            r_it = p_item.add_run(item_testado if item_testado else "")
+            r_it.font.size = Pt(8.5)
+            r_it.font.color.rgb = RGBColor(50, 50, 50)
 
-        # ----------------------------------------------------
-        # NOVO CABEÇALHO PADRÃO KÄRCHER
-        # ----------------------------------------------------
         tbl_hdr = doc.add_table(rows=1, cols=2)
         tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
         c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
@@ -167,7 +240,6 @@ with col_btn1:
         r_logo = p_logo.add_run("KÄRCHER")
         r_logo.bold = True
         r_logo.font.size = Pt(18)
-        r_logo.font.color.rgb = RGBColor(0, 0, 0)
 
         p_main_title = doc.add_paragraph()
         p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -177,7 +249,6 @@ with col_btn1:
         r_title.bold = True
         r_title.font.size = Pt(26)
 
-        # Bloco Limpo do Código ST
         tbl_top = doc.add_table(rows=1, cols=2)
         tbl_top.style = 'Table Grid'
         tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -236,7 +307,7 @@ with col_btn1:
             hdr_row = tbl.rows[0]
             for col_i, h_text in enumerate(headers):
                 cell = hdr_row.cells[col_i]
-                set_cell_background(cell, "FFED00")
+                set_cell_background(cell, "A6A6A6") # Fundo Cinza Escuro no Cabeçalho
                 p = cell.paragraphs[0]
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 r = p.add_run(h_text)
@@ -255,6 +326,11 @@ with col_btn1:
                 row = tbl.rows[r_idx + 1]
                 for c_idx, val in enumerate(r_vals):
                     cell = row.cells[c_idx]
+                    
+                    # Se for a linha de Média, pinta o fundo de cinza igual à imagem
+                    if r_vals[0] == "Média" and c_idx in [0, 2, 3, 4, 5, 6]:
+                        set_cell_background(cell, "A6A6A6")
+                        
                     p = cell.paragraphs[0]
                     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                     r = p.add_run(val)
@@ -294,7 +370,7 @@ with col_btn1:
         headers_res = ["Amostra", "Tempo de teste", "Vida útil esperada", "Falhas apresentadas"]
         for c_i, h_txt in enumerate(headers_res):
             cell = tbl_res.rows[0].cells[c_i]
-            set_cell_background(cell, "FFED00")
+            set_cell_background(cell, "A6A6A6") # Fundo Cinza Escuro
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.add_run(h_txt).bold = True
@@ -323,7 +399,7 @@ with col_btn1:
 with col_btn2:
     if st.button("📄 GERAR RELATÓRIO PDF (.PDF)", type="secondary", use_container_width=True):
         pdf_buffer = io.BytesIO()
-        pdf_doc = SimpleDocTemplate(pdf_buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+        pdf_doc = SimpleDocTemplate(pdf_buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=40)
         
         styles = getSampleStyleSheet()
         style_title = ParagraphStyle(name='TitleStyle', fontName='Helvetica-Bold', fontSize=12, leading=14)
@@ -333,7 +409,6 @@ with col_btn2:
         
         elements = []
 
-        # Novo Cabeçalho PDF
         hdr_data = [[
             Paragraph("<b>Departamento de testes e desenvolvimentos</b>", style_bold),
             Paragraph("<b>KÄRCHER</b>", ParagraphStyle(name='RLogo', fontName='Helvetica-Bold', fontSize=16, alignment=2))
@@ -392,7 +467,8 @@ with col_btn2:
             t_param = Table(param_data, colWidths=[55, 75, 65, 65, 65, 65, 65, 85])
             t_param.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#FFED00")),
+                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#A6A6A6")), # Cinza nas tabelas PDF
+                ('BACKGROUND', (0,-1), (-2,-1), colors.HexColor("#A6A6A6")),
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('FONTSIZE', (0,0), (-1,-1), 8),
@@ -430,14 +506,20 @@ with col_btn2:
         t_res = Table(res_data, colWidths=[100, 100, 100, 240])
         t_res.setStyle(TableStyle([
             ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#FFED00")),
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#A6A6A6")),
             ('ALIGN', (0,0), (-1,-1), 'CENTER'),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('FONTSIZE', (0,0), (-1,-1), 8),
         ]))
         elements.append(t_res)
 
-        pdf_doc.build(elements)
+        def make_canvas(*args, **kwargs):
+            c = NumberedCanvas(*args, **kwargs)
+            c.codigo_st = codigo_st
+            c.item_testado = item_testado
+            return c
+
+        pdf_doc.build(elements, canvasmaker=make_canvas)
         pdf_buffer.seek(0)
 
         st.success("✅ Relatório PDF (.pdf) gerado com sucesso!")

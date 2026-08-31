@@ -123,7 +123,8 @@ with c_rpm_opt:
 amostras_dados = []
 
 for idx in range(int(num_amostras)):
-    st.markdown(f"### Amostra {idx+1}")
+    # GARANTE EXIBIÇÃO CORRETA: "Amostra 1", "Amostra 2", etc.
+    st.markdown(f"## Amostra {idx+1}")
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
@@ -136,9 +137,7 @@ for idx in range(int(num_amostras)):
         with col_p2:
             tensao_partida = st.text_input("Tensão de Partida", value="", placeholder="Ex: 94V", key=f"p_tensao_{idx}")
         
-        # Formata o texto final para a tabela do relatório
         partida = f"{partiu_frio} ({tensao_partida})" if tensao_partida else partiu_frio
-        
         horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h", key=f"h_{idx}")
     with col_c:
         defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)

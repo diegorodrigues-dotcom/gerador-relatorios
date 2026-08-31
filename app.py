@@ -57,7 +57,6 @@ num_amostras = st.number_input("Quantidade de Amostras", min_value=1, value=1)
 amostras_dados = []
 
 for idx in range(int(num_amostras)):
-    # SEM O # NA AMOSTRA:
     st.markdown(f"### Amostra {idx+1}")
     
     col_a, col_b, col_c = st.columns(3)
@@ -150,6 +149,35 @@ with col_btn1:
             r_ft.font.size = Pt(8)
             r_ft.font.color.rgb = RGBColor(120, 120, 120)
 
+        # ----------------------------------------------------
+        # NOVO CABEÇALHO PADRÃO KÄRCHER
+        # ----------------------------------------------------
+        tbl_hdr = doc.add_table(rows=1, cols=2)
+        tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
+        c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
+        c_left.width, c_right.width = Inches(4.5), Inches(2.0)
+
+        p_dept = c_left.paragraphs[0]
+        r_dept = p_dept.add_run("Departamento de testes e desenvolvimentos")
+        r_dept.bold = True
+        r_dept.font.size = Pt(11)
+
+        p_logo = c_right.paragraphs[0]
+        p_logo.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        r_logo = p_logo.add_run("KÄRCHER")
+        r_logo.bold = True
+        r_logo.font.size = Pt(18)
+        r_logo.font.color.rgb = RGBColor(0, 0, 0)
+
+        p_main_title = doc.add_paragraph()
+        p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_main_title.paragraph_format.space_before = Pt(18)
+        p_main_title.paragraph_format.space_after = Pt(24)
+        r_title = p_main_title.add_run("Relatório de teste")
+        r_title.bold = True
+        r_title.font.size = Pt(26)
+
+        # Bloco Limpo do Código ST
         tbl_top = doc.add_table(rows=1, cols=2)
         tbl_top.style = 'Table Grid'
         tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -299,10 +327,23 @@ with col_btn2:
         
         styles = getSampleStyleSheet()
         style_title = ParagraphStyle(name='TitleStyle', fontName='Helvetica-Bold', fontSize=12, leading=14)
+        style_main_title = ParagraphStyle(name='MainTitleStyle', fontName='Helvetica-Bold', fontSize=22, leading=26, alignment=1)
         style_normal = ParagraphStyle(name='NormalStyle', fontName='Helvetica', fontSize=9, leading=11)
         style_bold = ParagraphStyle(name='BoldStyle', fontName='Helvetica-Bold', fontSize=9, leading=11)
         
         elements = []
+
+        # Novo Cabeçalho PDF
+        hdr_data = [[
+            Paragraph("<b>Departamento de testes e desenvolvimentos</b>", style_bold),
+            Paragraph("<b>KÄRCHER</b>", ParagraphStyle(name='RLogo', fontName='Helvetica-Bold', fontSize=16, alignment=2))
+        ]]
+        t_hdr = Table(hdr_data, colWidths=[380, 160])
+        elements.append(t_hdr)
+        elements.append(Spacer(1, 15))
+
+        elements.append(Paragraph("Relatório de teste", style_main_title))
+        elements.append(Spacer(1, 15))
 
         data_st = [[Paragraph("<b>ST</b>", style_title), Paragraph(codigo_st, style_title)]]
         t_st = Table(data_st, colWidths=[60, 480])

@@ -31,17 +31,17 @@ st.header("1. Informações Gerais do Ensaio")
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    codigo_st = st.text_input("ST", value="")
+    codigo_st = st.text_input("ST", value="", placeholder="Ex: 001941")
     objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
     
 
 with c2:
-    tecnico = st.text_input("Responsável", value="")
+    tecnico = st.text_input("Responsável", value="", placeholder=" Digite seu nome...")
     normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite os critérios / normas...")
 
 with c3:
-    item_testado = st.text_input("Item Testado", value="")
-    data_ensaio = st.text_input("Data do Teste", value="")
+    item_testado = st.text_input("Item Testado", value="", placeholder="O que você está testando?...")
+    data_ensaio = st.text_input("Data do Teste", value="", placeholder="Ex: 01/01/2026")
 
 conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
     value="", 
@@ -53,7 +53,7 @@ st.markdown("---")
 # 2. CADASTRO DINÂMICO DE AMOSTRAS E MEDIÇÕES
 st.header("2. Cadastro de Amostras (Medições, Fotos e Defeitos)")
 
-num_amostras = st.number_input("Quantidade de Amostras", min_value=1, max_value=10, value=1)
+num_amostras = st.number_input("Quantidade de Amostras", min_value=1, value=1)
 
 amostras_dados = []
 

@@ -58,12 +58,12 @@ num_amostras = st.number_input("Quantidade de Amostras", min_value=1, value=1)
 amostras_dados = []
 
 for idx in range(int(num_amostras)):
-    st.markdown(f"### 🧪 Amostra #{idx+1}")
+    st.markdown(f"### Amostra {idx+1}")
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
         sample_id = st.text_input(f"Sample ID", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
-        voltagem_conexao = st.text_input("Voltagem / Conexão", value="", placeholder="Ex: 127V Engate Rápido", key=f"volt_{idx}")
+        tensão = st.text_input("Tensão", value="", placeholder="127V / 220V", key=f"volt_{idx}")
     with col_b:
         partida = st.text_input("Partida a frio", value="", placeholder="Ex: 94V", key=f"part_{idx}")
         horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h", key=f"h_{idx}")

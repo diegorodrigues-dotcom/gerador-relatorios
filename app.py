@@ -130,7 +130,15 @@ for idx in range(int(num_amostras)):
         sample_id = st.text_input(f"Sample ID", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
         voltagem_conexao = st.text_input("Tensão", value="", placeholder="127V / 220V", key=f"volt_{idx}")
     with col_b:
-        partida = st.text_input("Partida a frio", value="", placeholder="94V / 187V", key=f"part_{idx}")
+        col_p1, col_p2 = st.columns([1, 1])
+        with col_p1:
+            partiu_frio = st.selectbox("Partiu a frio?", ["Sim", "Não"], key=f"p_status_{idx}")
+        with col_p2:
+            tensao_partida = st.text_input("Tensão de Partida", value="", placeholder="Ex: 94V", key=f"p_tensao_{idx}")
+        
+        # Formata o texto final para a tabela do relatório
+        partida = f"{partiu_frio} ({tensao_partida})" if tensao_partida else partiu_frio
+        
         horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h", key=f"h_{idx}")
     with col_c:
         defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
@@ -376,7 +384,6 @@ with col_btn1:
                 for c_idx, val in enumerate(r_vals):
                     cell = row.cells[c_idx]
                     
-                    # Destaca a linha de média em cinza
                     if r_vals[0] == "Média" and c_idx in ([0] + list(range(2, num_cols-1))):
                         set_cell_background(cell, "A6A6A6")
                         

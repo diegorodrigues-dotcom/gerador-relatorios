@@ -125,33 +125,33 @@ for idx in range(int(num_amostras)):
     
     with m1:
         st.caption("Tensão (V)")
-        v30 = st.number_input("30s (V)", value=0.0, step=0.1, key=f"v30_{idx}")
-        v1m = st.number_input("1min (V)", value=0.0, step=0.1, key=f"v1m_{idx}")
-        v5m = st.number_input("5min (V)", value=0.0, step=0.1, key=f"v5m_{idx}")
+        v30 = st.number_input("30s (V)", value=, step=0.1, key=f"v30_{idx}")
+        v1m = st.number_input("1min (V)", value=, step=0.1, key=f"v1m_{idx}")
+        v5m = st.number_input("5min (V)", value=, step=0.1, key=f"v5m_{idx}")
 
     with m2:
         st.caption("Potência (kW)")
-        p30 = st.number_input("30s (kW)", value=0.00, step=0.01, format="%.2f", key=f"p30_{idx}")
-        p1m = st.number_input("1min (kW)", value=0.00, step=0.01, format="%.2f", key=f"p1m_{idx}")
-        p5m = st.number_input("5min (kW)", value=0.00, step=0.01, format="%.2f", key=f"p5m_{idx}")
+        p30 = st.number_input("30s (kW)", value=, step=0.01, format="%.2f", key=f"p30_{idx}")
+        p1m = st.number_input("1min (kW)", value=, step=0.01, format="%.2f", key=f"p1m_{idx}")
+        p5m = st.number_input("5min (kW)", value=, step=0.01, format="%.2f", key=f"p5m_{idx}")
 
     with m3:
         st.caption("Pressão bico")
-        pr30 = st.number_input("30s (Pr)", value=0.0, step=0.1, key=f"pr30_{idx}")
-        pr1m = st.number_input("1min (Pr)", value=0.0, step=0.1, key=f"pr1m_{idx}")
-        pr5m = st.number_input("5min (Pr)", value=0.0, step=0.1, key=f"pr5m_{idx}")
+        pr30 = st.number_input("30s (Pr)", value=, step=0.1, key=f"pr30_{idx}")
+        pr1m = st.number_input("1min (Pr)", value=, step=0.1, key=f"pr1m_{idx}")
+        pr5m = st.number_input("5min (Pr)", value=, step=0.1, key=f"pr5m_{idx}")
 
     with m4:
         st.caption("Vazão (l/h)")
-        vz30 = st.number_input("30s (Vz)", value=0.0, step=1.0, key=f"vz30_{idx}")
-        vz1m = st.number_input("1min (Vz)", value=0.0, step=1.0, key=f"vz1m_{idx}")
-        vz5m = st.number_input("5min (Vz)", value=0.0, step=1.0, key=f"vz5m_{idx}")
+        vz30 = st.number_input("30s (Vz)", value=, step=1.0, key=f"vz30_{idx}")
+        vz1m = st.number_input("1min (Vz)", value=, step=1.0, key=f"vz1m_{idx}")
+        vz5m = st.number_input("5min (Vz)", value=, step=1.0, key=f"vz5m_{idx}")
 
     with m5:
         st.caption("Corrente (A)")
-        i30 = st.number_input("30s (A)", value=0.00, step=0.01, format="%.2f", key=f"i30_{idx}")
-        i1m = st.number_input("1min (A)", value=0.00, step=0.01, format="%.2f", key=f"i1m_{idx}")
-        i5m = st.number_input("5min (A)", value=0.00, step=0.01, format="%.2f", key=f"i5m_{idx}")
+        i30 = st.number_input("30s (A)", value=, step=0.01, format="%.2f", key=f"i30_{idx}")
+        i1m = st.number_input("1min (A)", value=, step=0.01, format="%.2f", key=f"i1m_{idx}")
+        i5m = st.number_input("5min (A)", value=, step=0.01, format="%.2f", key=f"i5m_{idx}")
 
     mv = round((v30 + v1m + v5m)/3, 1)
     mp = round((p30 + p1m + p5m)/3, 2)

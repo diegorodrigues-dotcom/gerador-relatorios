@@ -163,15 +163,15 @@ for idx in range(int(num_amostras)):
 
     with m3:
         st.caption("Pressão bico")
-        pr30 = st.text_input("30s (Pr)", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
-        pr3m = st.text_input("3min (Pr)", value="", placeholder="Ex: 94.0", key=f"pr3m_{idx}")
-        pr5m = st.text_input("5min (Pr)", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
+        pr30 = st.text_input("30s (Bar)", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
+        pr3m = st.text_input("3min (Bar)", value="", placeholder="Ex: 94.0", key=f"pr3m_{idx}")
+        pr5m = st.text_input("5min (Bar)", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
 
     with m4:
         st.caption("Vazão (l/h)")
-        vz30 = st.text_input("30s (Vz)", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
-        vz3m = st.text_input("3min (Vz)", value="", placeholder="Ex: 296", key=f"vz3m_{idx}")
-        vz5m = st.text_input("5min (Vz)", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
+        vz30 = st.text_input("30s (l/h)", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
+        vz3m = st.text_input("3min (l/h)", value="", placeholder="Ex: 296", key=f"vz3m_{idx}")
+        vz5m = st.text_input("5min (l/h)", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
 
     with m5:
         st.caption("Corrente (A)")

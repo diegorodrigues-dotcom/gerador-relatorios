@@ -211,12 +211,13 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     doc = docx.Document()
 
     for section in doc.sections:
-        section.top_margin = Inches(0.6)
-        section.bottom_margin = Inches(0.6)
+        # Configurando margens estendidas nas extremidades
+        section.top_margin = Inches(0.5)
+        section.bottom_margin = Inches(0.5)
         section.header_distance = Inches(0.3)
         section.footer_distance = Inches(0.3)
-        section.left_margin = Inches(0.8)
-        section.right_margin = Inches(0.8)
+        section.left_margin = Inches(0.6)
+        section.right_margin = Inches(0.6)
         
         # ----------------------------------------------------
         # DEFININDO O CABEÇALHO OFICIAL DO WORD (HEADER)
@@ -225,12 +226,12 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         p_hdr_init = header.paragraphs[0]
         p_hdr_init.text = ""
         
-        tbl_hdr = header.add_table(rows=1, cols=2, width=Inches(6.9))
+        tbl_hdr = header.add_table(rows=1, cols=2, width=Inches(7.3))
         tbl_hdr.autofit = False
         tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
         c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
         
-        c_left.width = Cm(10.39)
+        c_left.width = Cm(11.39)
         c_right.width = Cm(4.71)
         c_left.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
         c_right.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
@@ -263,11 +264,11 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         p_ft = footer.paragraphs[0]
         p_ft.text = ""
         
-        tbl_ft = footer.add_table(1, 3, Inches(6.9))
+        tbl_ft = footer.add_table(1, 3, Inches(7.3))
         tbl_ft.alignment = WD_TABLE_ALIGNMENT.CENTER
         
         c_st_ft, c_page_ft, c_item_ft = tbl_ft.rows[0].cells[0], tbl_ft.rows[0].cells[1], tbl_ft.rows[0].cells[2]
-        c_st_ft.width, c_page_ft.width, c_item_ft.width = Inches(2.3), Inches(2.3), Inches(2.3)
+        c_st_ft.width, c_page_ft.width, c_item_ft.width = Inches(2.4), Inches(2.5), Inches(2.4)
         
         p_st_ft = c_st_ft.paragraphs[0]
         r_st = p_st_ft.add_run(f"ST {codigo_st}" if codigo_st else "ST")
@@ -300,14 +301,14 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     # ----------------------------------------------------
     p_main_title = doc.add_paragraph()
     p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_main_title.paragraph_format.space_before = Pt(6)
-    p_main_title.paragraph_format.space_after = Pt(14)
+    p_main_title.paragraph_format.space_before = Pt(4)
+    p_main_title.paragraph_format.space_after = Pt(12)
     r_title = p_main_title.add_run("Relatório de teste")
     r_title.font.name = 'Arial'
     r_title.bold = True
     r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
+    # TABELA UNIFICADA EXPANDIDA PARA AS EXTREMIDADES DA PÁGINA
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -330,9 +331,9 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         
         c0, c1 = row.cells[0], row.cells[1]
         
-        # Coluna 1 ajustada para 10,21 cm e Coluna 2 ajustada para 4,49 cm
-        c0.width = Cm(10.21)
-        c1.width = Cm(4.49)
+        # Coluna 1 ajustada para 4,49 cm e Coluna 2 ajustada para 10,21 cm
+        c0.width = Cm(4.49)
+        c1.width = Cm(10.21)
         
         set_cell_background(c0, "F2F2F2")
         
@@ -341,7 +342,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         p0.paragraph_format.space_after = Pt(2)
         r_k = p0.add_run(k)
         r_k.font.name = 'Arial'
-        r_k.font.size = Pt(11)  # Fonte Arial 11
+        r_k.font.size = Pt(10.5)
         r_k.bold = True
         
         p_val = c1.paragraphs[0]
@@ -356,7 +357,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 p_val.paragraph_format.space_after = Pt(2)
             r_v = p_val.add_run(linha)
             r_v.font.name = 'Arial'
-            r_v.font.size = Pt(11)  # Fonte Arial 11
+            r_v.font.size = Pt(10.5)
 
     doc.add_paragraph()
 

@@ -206,9 +206,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
         
-        # ----------------------------------------------------
         # RODAPÉ: ARIAL TAMANHO 10
-        # ----------------------------------------------------
         footer = section.footer
         p_ft = footer.paragraphs[0]
         p_ft.text = ""
@@ -219,14 +217,12 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         c_st_ft, c_page_ft, c_item_ft = tbl_ft.rows[0].cells[0], tbl_ft.rows[0].cells[1], tbl_ft.rows[0].cells[2]
         c_st_ft.width, c_page_ft.width, c_item_ft.width = Inches(2.3), Inches(2.3), Inches(2.3)
         
-        # Coluna Esquerda: ST
         p_st_ft = c_st_ft.paragraphs[0]
         r_st = p_st_ft.add_run(f"ST {codigo_st}" if codigo_st else "ST")
         r_st.font.name = 'Arial'
         r_st.font.size = Pt(10)
         r_st.font.color.rgb = RGBColor(50, 50, 50)
         
-        # Coluna Central: Folha X de Y
         p_page = c_page_ft.paragraphs[0]
         p_page.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r_p1 = p_page.add_run("Folha ")
@@ -240,7 +236,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_p2.font.color.rgb = RGBColor(50, 50, 50)
         add_field(p_page, 'NUMPAGES')
         
-        # Coluna Direita: Item Testado
         p_item = c_item_ft.paragraphs[0]
         p_item.alignment = WD_ALIGN_PARAGRAPH.RIGHT
         r_it = p_item.add_run(item_testado if item_testado else "")
@@ -248,9 +243,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_it.font.size = Pt(10)
         r_it.font.color.rgb = RGBColor(50, 50, 50)
 
-    # ----------------------------------------------------
     # CABEÇALHO: ARIAL TAMANHO 11 E LOGO KÄRCHER
-    # ----------------------------------------------------
     tbl_hdr = doc.add_table(rows=1, cols=2)
     tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
     c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
@@ -265,7 +258,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     p_logo = c_right.paragraphs[0]
     p_logo.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     
-    # Adiciona a imagem da Logo Kärcher se estiver presente no diretório
     logo_path = "logo_karcher.png"
     if os.path.exists(logo_path):
         p_logo.add_run().add_picture(logo_path, width=Inches(2.2))
@@ -275,9 +267,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_logo.bold = True
         r_logo.font.size = Pt(18)
 
-    # ----------------------------------------------------
     # TÍTULO: RELATÓRIO DE TESTE EM ARIAL TAMANHO 37
-    # ----------------------------------------------------
     p_main_title = doc.add_paragraph()
     p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_main_title.paragraph_format.space_before = Pt(18)

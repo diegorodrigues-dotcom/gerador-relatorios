@@ -226,9 +226,8 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
         c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
         
-        # Largura da célula esquerda expandida para 12,0 cm para eliminar quebra de linha
-        c_left.width = Cm(12.00)
-        c_right.width = Cm(5.00)
+        c_left.width = Cm(10.39)
+        c_right.width = Cm(4.71)
         c_left.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
         c_right.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
@@ -238,7 +237,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_dept = p_dept.add_run("Departamento de testes e desenvolvimentos")
         r_dept.font.name = 'Arial'
         r_dept.bold = True
-        r_dept.font.size = Pt(12)
+        r_dept.font.size = Pt(11)  # Alterado para Arial 11
 
         p_logo = c_right.paragraphs[0]
         p_logo.alignment = WD_ALIGN_PARAGRAPH.RIGHT

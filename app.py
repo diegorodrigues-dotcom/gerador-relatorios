@@ -211,7 +211,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     doc = docx.Document()
 
     for section in doc.sections:
-        # Configurando margens estendidas nas extremidades
         section.top_margin = Inches(0.5)
         section.bottom_margin = Inches(0.5)
         section.header_distance = Inches(0.3)
@@ -308,7 +307,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.bold = True
     r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA EXPANDIDA PARA AS EXTREMIDADES DA PÁGINA
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS (SEM A CONCLUSÃO)
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -316,8 +315,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         ("Item testado", item_testado),
         ("Quantidade", str(num_amostras)),
         ("Objetivo do teste", objetivo),
-        ("Critério de aprovação", normas),
-        ("Conclusão", conclusao_texto)
+        ("Critério de aprovação", normas)
     ]
 
     tbl_meta = doc.add_table(rows=len(meta_info), cols=2)
@@ -330,8 +328,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         prevent_row_split(row)
         
         c0, c1 = row.cells[0], row.cells[1]
-        
-        # Coluna 1 ajustada para 4,49 cm e Coluna 2 ajustada para 10,21 cm
         c0.width = Cm(4.49)
         c1.width = Cm(10.21)
         
@@ -358,6 +354,30 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r_v = p_val.add_run(linha)
             r_v.font.name = 'Arial'
             r_v.font.size = Pt(10.5)
+
+    doc.add_paragraph()
+
+    # SEÇÃO DE CONCLUSÃO (FORA DA TABELA)
+    p_conc_title = doc.add_paragraph()
+    p_conc_title.paragraph_format.space_before = Pt(6)
+    p_conc_title.paragraph_format.space_after = Pt(2)
+    r_conc_title = p_conc_title.add_run("Conclusão")
+    r_conc_title.font.name = 'Arial'
+    r_conc_title.bold = True
+    r_conc_title.font.size = Pt(11)
+
+    p_conc = doc.add_paragraph()
+    p_conc.paragraph_format.space_before = Pt(0)
+    p_conc.paragraph_format.space_after = Pt(12)
+    linhas_c = conclusao_texto.split('\n') if conclusao_texto else [""]
+    for idx_c, linha_c in enumerate(linhas_c):
+        if idx_c > 0:
+            p_conc = doc.add_paragraph()
+            p_conc.paragraph_format.space_before = Pt(0)
+            p_conc.paragraph_format.space_after = Pt(2)
+        r_c = p_conc.add_run(linha_c)
+        r_c.font.name = 'Arial'
+        r_c.font.size = Pt(10.5)
 
     doc.add_paragraph()
 

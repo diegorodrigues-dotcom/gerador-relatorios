@@ -251,14 +251,15 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_it.font.color.rgb = RGBColor(50, 50, 50)
 
     # ----------------------------------------------------
-    # CABEÇALHO: SEM QUEBRA DE TEXTO
+    # CABEÇALHO: COMPRIMENTO DA COLUNA ESQUERDA = 9,00 cm
     # ----------------------------------------------------
     tbl_hdr = doc.add_table(rows=1, cols=2)
+    tbl_hdr.autofit = False
     tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
     c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
     
-    # Largura expandida para a coluna esquerda evitar quebra do texto em 2 linhas
-    c_left.width, c_right.width = Inches(5.2), Inches(2.0)
+    c_left.width = Cm(9.00)
+    c_right.width = Cm(6.00)
     c_left.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
     c_right.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
@@ -294,7 +295,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.font.size = Pt(37)
 
     # ----------------------------------------------------
-    # TABELA UNIFICADA: COLUNA 1 ENXUTA ATÉ A MAIOR FRASE
+    # TABELA UNIFICADA: COLUNA 1 LARGURA = 1,60 cm
     # ----------------------------------------------------
     meta_info = [
         ("ST", codigo_st),
@@ -308,6 +309,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     ]
 
     tbl_meta = doc.add_table(rows=len(meta_info), cols=2)
+    tbl_meta.autofit = False
     tbl_meta.style = 'Table Grid'
     tbl_meta.alignment = WD_TABLE_ALIGNMENT.CENTER
 
@@ -315,9 +317,9 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         row = tbl_meta.rows[i]
         c0, c1 = row.cells[0], row.cells[1]
         
-        # Coluna 1 ajustada exatamente à maior frase (~1.8 polegadas)
-        c0.width = Inches(1.8)
-        c1.width = Inches(5.1)
+        # Coluna 1 ajustada para 1,60 cm e Coluna 2 ajustada para 13,50 cm
+        c0.width = Cm(1.60)
+        c1.width = Cm(13.50)
         
         set_cell_background(c0, "F2F2F2")
         

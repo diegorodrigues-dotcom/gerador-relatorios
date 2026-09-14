@@ -208,8 +208,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     doc = docx.Document()
 
     for section in doc.sections:
-        # Subindo o cabeçalho ajustando as margens superiores
-        section.top_margin = Inches(0.5)
+        section.top_margin = Inches(0.4)
         section.bottom_margin = Inches(0.8)
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
@@ -252,7 +251,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_it.font.color.rgb = RGBColor(50, 50, 50)
 
     # ----------------------------------------------------
-    # CABEÇALHO COM LOGO ALINHADO E TAMANHO EXATO (3,8 cm x 0,99 cm)
+    # CABEÇALHO: ARIAL TAMANHO 12 E LOGO L: 4,71 cm x A: 1,26 cm
     # ----------------------------------------------------
     tbl_hdr = doc.add_table(rows=1, cols=2)
     tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -267,7 +266,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_dept = p_dept.add_run("Departamento de testes e desenvolvimentos")
     r_dept.font.name = 'Arial'
     r_dept.bold = True
-    r_dept.font.size = Pt(11)
+    r_dept.font.size = Pt(12)
 
     p_logo = c_right.paragraphs[0]
     p_logo.alignment = WD_ALIGN_PARAGRAPH.RIGHT
@@ -275,7 +274,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     p_logo.paragraph_format.space_after = Pt(0)
     
     if os.path.exists(logo_path):
-        p_logo.add_run().add_picture(logo_path, width=Cm(3.8), height=Cm(0.99))
+        p_logo.add_run().add_picture(logo_path, width=Cm(4.71), height=Cm(1.26))
     else:
         r_logo = p_logo.add_run("KÄRCHER")
         r_logo.font.name = 'Arial'
@@ -285,15 +284,15 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     # TÍTULO: RELATÓRIO DE TESTE EM ARIAL TAMANHO 37
     p_main_title = doc.add_paragraph()
     p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_main_title.paragraph_format.space_before = Pt(12)
-    p_main_title.paragraph_format.space_after = Pt(18)
+    p_main_title.paragraph_format.space_before = Pt(14)
+    p_main_title.paragraph_format.space_after = Pt(20)
     r_title = p_main_title.add_run("Relatório de teste")
     r_title.font.name = 'Arial'
     r_title.bold = True
     r_title.font.size = Pt(37)
 
     # ----------------------------------------------------
-    # TABELA ÚNICA DE INFORMAÇÕES GERAIS (INCLUINDO ST)
+    # TABELA UNIFICADA COM CRITÉRIO DE APROVAÇÃO E CONCLUSÃO
     # ----------------------------------------------------
     meta_info = [
         ("ST", codigo_st),
@@ -301,7 +300,9 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         ("Data", data_ensaio),
         ("Item testado", item_testado),
         ("Quantidade", str(num_amostras)),
-        ("Objetivo do teste", objetivo)
+        ("Objetivo do teste", objetivo),
+        ("Critério de aprovação", normas),
+        ("Conclusão", conclusao_texto)
     ]
 
     tbl_meta = doc.add_table(rows=len(meta_info), cols=2)
@@ -311,25 +312,24 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     for i, (k, v) in enumerate(meta_info):
         row = tbl_meta.rows[i]
         c0, c1 = row.cells[0], row.cells[1]
-        c0.width, c1.width = Inches(2.2), Inches(4.3)
+        
+        c0.width = Inches(1.5)
+        c1.width = Inches(5.4)
+        
         set_cell_background(c0, "F2F2F2")
         
         r_k = c0.paragraphs[0].add_run(k)
         r_k.font.name = 'Arial'
         r_k.bold = True
         
-        r_v = c1.paragraphs[0].add_run(v)
-        r_v.font.name = 'Arial'
-
-    doc.add_paragraph()
-
-    p_conc_lbl = doc.add_paragraph().add_run("Conclusão")
-    p_conc_lbl.font.name = 'Arial'
-    p_conc_lbl.bold = True
-
-    p_conc_txt = doc.add_paragraph(conclusao_texto)
-    for r in p_conc_txt.runs:
-        r.font.name = 'Arial'
+        # Suporta múltiplas linhas de texto para Critério de aprovação e Conclusão
+        p_val = c1.paragraphs[0]
+        linhas_v = v.split('\n') if v else [""]
+        for idx_l, linha in enumerate(linhas_v):
+            if idx_l > 0:
+                p_val = c1.add_paragraph()
+            r_v = p_val.add_run(linha)
+            r_v.font.name = 'Arial'
 
     doc.add_paragraph()
 

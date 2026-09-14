@@ -6,6 +6,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import io
+import os
 
 # Configuração da página Web
 st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
@@ -205,6 +206,9 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
         
+        # ----------------------------------------------------
+        # RODAPÉ: ARIAL TAMANHO 10
+        # ----------------------------------------------------
         footer = section.footer
         p_ft = footer.paragraphs[0]
         p_ft.text = ""
@@ -215,52 +219,75 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         c_st_ft, c_page_ft, c_item_ft = tbl_ft.rows[0].cells[0], tbl_ft.rows[0].cells[1], tbl_ft.rows[0].cells[2]
         c_st_ft.width, c_page_ft.width, c_item_ft.width = Inches(2.3), Inches(2.3), Inches(2.3)
         
+        # Coluna Esquerda: ST
         p_st_ft = c_st_ft.paragraphs[0]
         r_st = p_st_ft.add_run(f"ST {codigo_st}" if codigo_st else "ST")
-        r_st.font.size = Pt(8.5)
+        r_st.font.name = 'Arial'
+        r_st.font.size = Pt(10)
         r_st.font.color.rgb = RGBColor(50, 50, 50)
         
+        # Coluna Central: Folha X de Y
         p_page = c_page_ft.paragraphs[0]
         p_page.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r_p1 = p_page.add_run("Folha ")
-        r_p1.font.size = Pt(8.5)
+        r_p1.font.name = 'Arial'
+        r_p1.font.size = Pt(10)
         r_p1.font.color.rgb = RGBColor(50, 50, 50)
         add_field(p_page, 'PAGE')
         r_p2 = p_page.add_run(" de ")
-        r_p2.font.size = Pt(8.5)
+        r_p2.font.name = 'Arial'
+        r_p2.font.size = Pt(10)
         r_p2.font.color.rgb = RGBColor(50, 50, 50)
         add_field(p_page, 'NUMPAGES')
         
+        # Coluna Direita: Item Testado
         p_item = c_item_ft.paragraphs[0]
         p_item.alignment = WD_ALIGN_PARAGRAPH.RIGHT
         r_it = p_item.add_run(item_testado if item_testado else "")
-        r_it.font.size = Pt(8.5)
+        r_it.font.name = 'Arial'
+        r_it.font.size = Pt(10)
         r_it.font.color.rgb = RGBColor(50, 50, 50)
 
+    # ----------------------------------------------------
+    # CABEÇALHO: ARIAL TAMANHO 11 E LOGO KÄRCHER
+    # ----------------------------------------------------
     tbl_hdr = doc.add_table(rows=1, cols=2)
     tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
     c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
-    c_left.width, c_right.width = Inches(4.5), Inches(2.0)
+    c_left.width, c_right.width = Inches(4.5), Inches(2.4)
 
     p_dept = c_left.paragraphs[0]
     r_dept = p_dept.add_run("Departamento de testes e desenvolvimentos")
+    r_dept.font.name = 'Arial'
     r_dept.bold = True
     r_dept.font.size = Pt(11)
 
     p_logo = c_right.paragraphs[0]
     p_logo.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    r_logo = p_logo.add_run("KÄRCHER")
-    r_logo.bold = True
-    r_logo.font.size = Pt(18)
+    
+    # Adiciona a imagem da Logo Kärcher se estiver presente no diretório
+    logo_path = "logo_karcher.png"
+    if os.path.exists(logo_path):
+        p_logo.add_run().add_picture(logo_path, width=Inches(2.2))
+    else:
+        r_logo = p_logo.add_run("KÄRCHER")
+        r_logo.font.name = 'Arial'
+        r_logo.bold = True
+        r_logo.font.size = Pt(18)
 
+    # ----------------------------------------------------
+    # TÍTULO: RELATÓRIO DE TESTE EM ARIAL TAMANHO 37
+    # ----------------------------------------------------
     p_main_title = doc.add_paragraph()
     p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_main_title.paragraph_format.space_before = Pt(18)
     p_main_title.paragraph_format.space_after = Pt(24)
     r_title = p_main_title.add_run("Relatório de teste")
+    r_title.font.name = 'Arial'
     r_title.bold = True
-    r_title.font.size = Pt(26)
+    r_title.font.size = Pt(37)
 
+    # Bloco Código ST
     tbl_top = doc.add_table(rows=1, cols=2)
     tbl_top.style = 'Table Grid'
     tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -269,14 +296,17 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     
     p0 = c_st_label.paragraphs[0]
     r0 = p0.add_run("ST")
+    r0.font.name = 'Arial'
     r0.bold, r0.font.size = True, Pt(14)
 
     p1 = c_st_val.paragraphs[0]
     r1 = p1.add_run(codigo_st)
+    r1.font.name = 'Arial'
     r1.bold, r1.font.size = True, Pt(14)
 
     doc.add_paragraph()
 
+    # Informações Gerais
     tbl_meta = doc.add_table(rows=6, cols=2)
     tbl_meta.style = 'Table Grid'
     tbl_meta.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -295,20 +325,35 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         c0, c1 = row.cells[0], row.cells[1]
         c0.width, c1.width = Inches(2.2), Inches(4.3)
         set_cell_background(c0, "F2F2F2")
-        c0.paragraphs[0].add_run(k).bold = True
-        c1.paragraphs[0].add_run(v)
+        
+        r_k = c0.paragraphs[0].add_run(k)
+        r_k.font.name = 'Arial'
+        r_k.bold = True
+        
+        r_v = c1.paragraphs[0].add_run(v)
+        r_v.font.name = 'Arial'
 
     doc.add_paragraph()
 
-    doc.add_paragraph().add_run("Conclusão").bold = True
-    doc.add_paragraph(conclusao_texto)
+    p_conc_lbl = doc.add_paragraph().add_run("Conclusão")
+    p_conc_lbl.font.name = 'Arial'
+    p_conc_lbl.bold = True
+
+    p_conc_txt = doc.add_paragraph(conclusao_texto)
+    for r in p_conc_txt.runs:
+        r.font.name = 'Arial'
+
     doc.add_paragraph()
 
-    doc.add_paragraph().add_run("1- Teste funcional de Parâmetros").bold = True
+    p_sec1 = doc.add_paragraph().add_run("1- Teste funcional de Parâmetros")
+    p_sec1.font.name = 'Arial'
+    p_sec1.bold = True
 
     for am in amostras_dados:
         p_sub = doc.add_paragraph()
-        p_sub.add_run(f"Máquina com conexão {am['voltagem_conexao']}").bold = True
+        r_sub = p_sub.add_run(f"Máquina com conexão {am['voltagem_conexao']}")
+        r_sub.font.name = 'Arial'
+        r_sub.bold = True
         
         num_cols = 9 if incluir_rpm else 8
         tbl = doc.add_table(rows=6, cols=num_cols)
@@ -341,6 +386,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(h_text)
+            r.font.name = 'Arial'
             r.bold = True
             r.font.size = Pt(8.0 if incluir_rpm else 8.5)
             r.font.color.rgb = RGBColor(0, 0, 0)
@@ -356,16 +402,22 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 p = cell.paragraphs[0]
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 r = p.add_run(val)
+                r.font.name = 'Arial'
                 r.font.size = Pt(8.5 if incluir_rpm else 9.0)
                 if r_vals[0] == "Média":
                     r.bold = True
 
         doc.add_paragraph()
 
-    doc.add_paragraph().add_run("2- Durabilidade conforme norma KN 082.023 cap. 4.7.1").bold = True
+    p_sec2 = doc.add_paragraph().add_run("2- Durabilidade conforme norma KN 082.023 cap. 4.7.1")
+    p_sec2.font.name = 'Arial'
+    p_sec2.bold = True
 
     for am in amostras_dados:
-        doc.add_paragraph().add_run(f"• {am['sample_id']} ({am['voltagem_conexao']})").bold = True
+        p_am = doc.add_paragraph()
+        r_am = p_am.add_run(f"• {am['sample_id']} ({am['voltagem_conexao']})")
+        r_am.font.name = 'Arial'
+        r_am.bold = True
         
         if am["fotos"]:
             cols_count = min(len(am["fotos"]), 3)
@@ -380,11 +432,19 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                     img_stream = io.BytesIO(f_file.read())
                     p_img.add_run().add_picture(img_stream, width=Inches(1.8))
 
-        doc.add_paragraph(f"Após {am['horas']} foram identificadas as falhas / defeitos:")
-        doc.add_paragraph(am["defeitos"])
+        p_fail_lbl = doc.add_paragraph(f"Após {am['horas']} foram identificadas as falhas / defeitos:")
+        for r in p_fail_lbl.runs:
+            r.font.name = 'Arial'
+            
+        p_fail_txt = doc.add_paragraph(am["defeitos"])
+        for r in p_fail_txt.runs:
+            r.font.name = 'Arial'
+            
         doc.add_paragraph()
 
-    doc.add_paragraph().add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras").bold = True
+    p_res_lbl = doc.add_paragraph().add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras")
+    p_res_lbl.font.name = 'Arial'
+    p_res_lbl.bold = True
     
     tbl_res = doc.add_table(rows=len(amostras_dados)+1, cols=4)
     tbl_res.style = 'Table Grid'
@@ -395,14 +455,24 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         set_cell_background(cell, "A6A6A6")
         p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.add_run(h_txt).bold = True
+        r_h = p.add_run(h_txt)
+        r_h.font.name = 'Arial'
+        r_h.bold = True
 
     for r_i, am in enumerate(amostras_dados):
         row = tbl_res.rows[r_i+1]
-        row.cells[0].paragraphs[0].add_run(am["sample_id"])
-        row.cells[1].paragraphs[0].add_run(am["horas"])
-        row.cells[2].paragraphs[0].add_run("60 h")
-        row.cells[3].paragraphs[0].add_run("Identificadas no ensaio")
+        
+        r_s = row.cells[0].paragraphs[0].add_run(am["sample_id"])
+        r_s.font.name = 'Arial'
+        
+        r_h = row.cells[1].paragraphs[0].add_run(am["horas"])
+        r_h.font.name = 'Arial'
+        
+        r_e = row.cells[2].paragraphs[0].add_run("60 h")
+        r_e.font.name = 'Arial'
+        
+        r_f = row.cells[3].paragraphs[0].add_run("Identificadas no ensaio")
+        r_f.font.name = 'Arial'
 
     buffer = io.BytesIO()
     doc.save(buffer)

@@ -3,8 +3,8 @@ import docx
 from docx.shared import Inches, Pt, RGBColor, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
+from docx.oxml import OxmlElement, parse_xml
+from docx.oxml.ns import qn, nsdecls
 import io
 import os
 
@@ -17,11 +17,14 @@ st.subheader("Lavadoras de Alta Pressão e Equipamentos Motorizados")
 st.markdown("---")
 
 def set_cell_background(cell, fill_hex):
-    from docx.oxml import parse_xml
-    from docx.oxml.ns import nsdecls
     tcPr = cell._tc.get_or_add_tcPr()
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
+
+def prevent_row_split(row):
+    """ Impede que o Word corte uma linha de tabela entre duas páginas """
+    trPr = row._tr.get_or_add_trPr()
+    trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
 
 def add_field(paragraph, field_type):
     run = paragraph.add_run()
@@ -208,9 +211,10 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     doc = docx.Document()
 
     for section in doc.sections:
-        section.top_margin = Inches(0.8)
-        section.header_distance = Inches(0.4)
-        section.bottom_margin = Inches(0.8)
+        section.top_margin = Inches(0.6)
+        section.bottom_margin = Inches(0.6)
+        section.header_distance = Inches(0.3)
+        section.footer_distance = Inches(0.3)
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
         
@@ -219,16 +223,15 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         # ----------------------------------------------------
         header = section.header
         p_hdr_init = header.paragraphs[0]
-        p_hdr_init.text = ""  # Limpa parágrafo padrão do cabeçalho
+        p_hdr_init.text = ""
         
         tbl_hdr = header.add_table(rows=1, cols=2, width=Inches(6.9))
         tbl_hdr.autofit = False
         tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
         c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
         
-        # Largura da célula da esquerda ajustada exatamente para 8,00 cm
-        c_left.width = Cm(8.00)
-        c_right.width = Cm(7.10)
+        c_left.width = Cm(10.39)
+        c_right.width = Cm(4.71)
         c_left.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
         c_right.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
@@ -295,17 +298,16 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     # ----------------------------------------------------
     # CORPO DO DOCUMENTO
     # ----------------------------------------------------
-    # TÍTULO: RELATÓRIO DE TESTE EM ARIAL TAMANHO 37
     p_main_title = doc.add_paragraph()
     p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_main_title.paragraph_format.space_before = Pt(14)
-    p_main_title.paragraph_format.space_after = Pt(20)
+    p_main_title.paragraph_format.space_before = Pt(6)
+    p_main_title.paragraph_format.space_after = Pt(14)
     r_title = p_main_title.add_run("Relatório de teste")
     r_title.font.name = 'Arial'
     r_title.bold = True
-    r_title.font.size = Pt(37)
+    r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS COMPACTA
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -324,30 +326,47 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
     for i, (k, v) in enumerate(meta_info):
         row = tbl_meta.rows[i]
+        prevent_row_split(row)
+        
         c0, c1 = row.cells[0], row.cells[1]
         
-        c0.width = Cm(1.60)
-        c1.width = Cm(13.50)
+        # Coluna 1 definida para 4,49 cm e Coluna 2 para 10,21 cm
+        c0.width = Cm(4.49)
+        c1.width = Cm(10.21)
         
         set_cell_background(c0, "F2F2F2")
         
-        r_k = c0.paragraphs[0].add_run(k)
+        p0 = c0.paragraphs[0]
+        p0.paragraph_format.space_before = Pt(2)
+        p0.paragraph_format.space_after = Pt(2)
+        r_k = p0.add_run(k)
         r_k.font.name = 'Arial'
+        r_k.font.size = Pt(9.5)
         r_k.bold = True
         
         p_val = c1.paragraphs[0]
+        p_val.paragraph_format.space_before = Pt(2)
+        p_val.paragraph_format.space_after = Pt(2)
+        
         linhas_v = v.split('\n') if v else [""]
         for idx_l, linha in enumerate(linhas_v):
             if idx_l > 0:
                 p_val = c1.add_paragraph()
+                p_val.paragraph_format.space_before = Pt(0)
+                p_val.paragraph_format.space_after = Pt(2)
             r_v = p_val.add_run(linha)
             r_v.font.name = 'Arial'
+            r_v.font.size = Pt(9.5)
 
     doc.add_paragraph()
 
-    p_sec1 = doc.add_paragraph().add_run("1- Teste funcional de Parâmetros")
-    p_sec1.font.name = 'Arial'
-    p_sec1.bold = True
+    p_sec1 = doc.add_paragraph()
+    p_sec1.paragraph_format.page_break_before = True  # Seção 1 inicia na Página 2
+    p_sec1.paragraph_format.space_before = Pt(6)
+    p_sec1.paragraph_format.space_after = Pt(6)
+    r_sec1 = p_sec1.add_run("1- Teste funcional de Parâmetros")
+    r_sec1.font.name = 'Arial'
+    r_sec1.bold = True
 
     for am in amostras_dados:
         p_sub = doc.add_paragraph()
@@ -380,6 +399,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             ]
         
         hdr_row = tbl.rows[0]
+        prevent_row_split(hdr_row)
         for col_i, h_text in enumerate(headers):
             cell = hdr_row.cells[col_i]
             set_cell_background(cell, "A6A6A6")
@@ -393,6 +413,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
         for r_idx, r_vals in enumerate(rows_data):
             row = tbl.rows[r_idx + 1]
+            prevent_row_split(row)
             for c_idx, val in enumerate(r_vals):
                 cell = row.cells[c_idx]
                 
@@ -461,6 +482,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
     for r_i, am in enumerate(amostras_dados):
         row = tbl_res.rows[r_i+1]
+        prevent_row_split(row)
         
         r_s = row.cells[0].paragraphs[0].add_run(am["sample_id"])
         r_s.font.name = 'Arial'

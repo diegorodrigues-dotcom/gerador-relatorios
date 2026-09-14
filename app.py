@@ -307,7 +307,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.bold = True
     r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS COMPACTA
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -330,9 +330,9 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         
         c0, c1 = row.cells[0], row.cells[1]
         
-        # Coluna 1 definida para 4,49 cm e Coluna 2 para 10,21 cm
-        c0.width = Cm(4.49)
-        c1.width = Cm(10.21)
+        # Coluna 1 ajustada para 10,21 cm e Coluna 2 ajustada para 4,49 cm
+        c0.width = Cm(10.21)
+        c1.width = Cm(4.49)
         
         set_cell_background(c0, "F2F2F2")
         
@@ -341,7 +341,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         p0.paragraph_format.space_after = Pt(2)
         r_k = p0.add_run(k)
         r_k.font.name = 'Arial'
-        r_k.font.size = Pt(9.5)
+        r_k.font.size = Pt(11)  # Fonte Arial 11
         r_k.bold = True
         
         p_val = c1.paragraphs[0]
@@ -356,7 +356,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 p_val.paragraph_format.space_after = Pt(2)
             r_v = p_val.add_run(linha)
             r_v.font.name = 'Arial'
-            r_v.font.size = Pt(9.5)
+            r_v.font.size = Pt(11)  # Fonte Arial 11
 
     doc.add_paragraph()
 

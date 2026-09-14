@@ -123,7 +123,6 @@ with c_rpm_opt:
 amostras_dados = []
 
 for idx in range(int(num_amostras)):
-    # GARANTE EXIBIÇÃO CORRETA: "Amostra 1", "Amostra 2", etc.
     st.markdown(f"## Amostra {idx+1}")
     
     col_a, col_b, col_c = st.columns(3)
@@ -152,57 +151,63 @@ for idx in range(int(num_amostras)):
     with m1:
         st.caption("Tensão (V)")
         v30 = st.text_input("30s (V)", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
+        v1m = st.text_input("1min (V)", value="", placeholder="Ex: 127.5", key=f"v1m_{idx}")
         v3m = st.text_input("3min (V)", value="", placeholder="Ex: 128.0", key=f"v3m_{idx}")
         v5m = st.text_input("5min (V)", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
 
     with m2:
         st.caption("Potência (kW)")
         p30 = st.text_input("30s (kW)", value="", placeholder="Ex: 1.53", key=f"p30_{idx}")
+        p1m = st.text_input("1min (kW)", value="", placeholder="Ex: 1.54", key=f"p1m_{idx}")
         p3m = st.text_input("3min (kW)", value="", placeholder="Ex: 1.55", key=f"p3m_{idx}")
         p5m = st.text_input("5min (kW)", value="", placeholder="Ex: 1.50", key=f"p5m_{idx}")
 
     with m3:
         st.caption("Pressão bico")
         pr30 = st.text_input("30s (Bar)", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
+        pr1m = st.text_input("1min (Bar)", value="", placeholder="Ex: 93.2", key=f"pr1m_{idx}")
         pr3m = st.text_input("3min (Bar)", value="", placeholder="Ex: 94.0", key=f"pr3m_{idx}")
         pr5m = st.text_input("5min (Bar)", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
 
     with m4:
         st.caption("Vazão (l/h)")
         vz30 = st.text_input("30s (l/h)", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
+        vz1m = st.text_input("1min (l/h)", value="", placeholder="Ex: 295", key=f"vz1m_{idx}")
         vz3m = st.text_input("3min (l/h)", value="", placeholder="Ex: 296", key=f"vz3m_{idx}")
         vz5m = st.text_input("5min (l/h)", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
 
     with m5:
         st.caption("Corrente (A)")
         i30 = st.text_input("30s (A)", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
+        i1m = st.text_input("1min (A)", value="", placeholder="Ex: 12.64", key=f"i1m_{idx}")
         i3m = st.text_input("3min (A)", value="", placeholder="Ex: 12.60", key=f"i3m_{idx}")
         i5m = st.text_input("5min (A)", value="", placeholder="Ex: 12.38", key=f"i5m_{idx}")
 
-    rpm30, rpm3m, rpm5m, mrpm = "", "", "", ""
+    rpm30, rpm1m, rpm3m, rpm5m, mrpm = "", "", "", "", ""
     if incluir_rpm:
         with m6:
             st.caption("RPM")
             rpm30 = st.text_input("30s (rpm)", value="", placeholder="Ex: 3450", key=f"rpm30_{idx}")
+            rpm1m = st.text_input("1min (rpm)", value="", placeholder="Ex: 3435", key=f"rpm1m_{idx}")
             rpm3m = st.text_input("3min (rpm)", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
             rpm5m = st.text_input("5min (rpm)", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
 
-    # CÁLCULO DE MÉDIAS
-    num_v = [safe_float(v30), safe_float(v3m), safe_float(v5m)]
-    num_p = [safe_float(p30), safe_float(p3m), safe_float(p5m)]
-    num_pr = [safe_float(pr30), safe_float(pr3m), safe_float(pr5m)]
-    num_vz = [safe_float(vz30), safe_float(vz3m), safe_float(vz5m)]
-    num_i = [safe_float(i30), safe_float(i3m), safe_float(i5m)]
+    # CÁLCULO DE MÉDIAS (30s, 1min, 3min, 5min)
+    num_v = [safe_float(v30), safe_float(v1m), safe_float(v3m), safe_float(v5m)]
+    num_p = [safe_float(p30), safe_float(p1m), safe_float(p3m), safe_float(p5m)]
+    num_pr = [safe_float(pr30), safe_float(pr1m), safe_float(pr3m), safe_float(pr5m)]
+    num_vz = [safe_float(vz30), safe_float(vz1m), safe_float(vz3m), safe_float(vz5m)]
+    num_i = [safe_float(i30), safe_float(i1m), safe_float(i3m), safe_float(i5m)]
 
-    mv = round(sum(num_v)/3, 1) if any(num_v) else ""
-    mp = round(sum(num_p)/3, 2) if any(num_p) else ""
-    mpr = round(sum(num_pr)/3, 1) if any(num_pr) else ""
-    mvz = round(sum(num_vz)/3, 0) if any(num_vz) else ""
-    mi = round(sum(num_i)/3, 2) if any(num_i) else ""
+    mv = round(sum(num_v)/4, 1) if any(num_v) else ""
+    mp = round(sum(num_p)/4, 2) if any(num_p) else ""
+    mpr = round(sum(num_pr)/4, 1) if any(num_pr) else ""
+    mvz = round(sum(num_vz)/4, 0) if any(num_vz) else ""
+    mi = round(sum(num_i)/4, 2) if any(num_i) else ""
 
     if incluir_rpm:
-        num_rpm = [safe_float(rpm30), safe_float(rpm3m), safe_float(rpm5m)]
-        calc_mrpm = round(sum(num_rpm)/3, 0) if any(num_rpm) else ""
+        num_rpm = [safe_float(rpm30), safe_float(rpm1m), safe_float(rpm3m), safe_float(rpm5m)]
+        calc_mrpm = round(sum(num_rpm)/4, 0) if any(num_rpm) else ""
         mrpm = str(int(calc_mrpm)) if calc_mrpm != "" else ""
 
     fotos_uploaded = st.file_uploader(f"Anexar Imagens para {sample_id if sample_id else f'Amostra {idx+1}'}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
@@ -214,12 +219,12 @@ for idx in range(int(num_amostras)):
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
         "fotos": fotos_uploaded,
-        "v30": v30, "v3m": v3m, "v5m": v5m, "mv": str(mv) if mv != "" else "",
-        "p30": p30, "p3m": p3m, "p5m": p5m, "mp": str(mp) if mp != "" else "",
-        "pr30": pr30, "pr3m": pr3m, "pr5m": pr5m, "mpr": str(mpr) if mpr != "" else "",
-        "vz30": vz30, "vz3m": vz3m, "vz5m": vz5m, "mvz": str(int(mvz)) if mvz != "" else "",
-        "i30": i30, "i3m": i3m, "i5m": i5m, "mi": str(mi) if mi != "" else "",
-        "rpm30": rpm30, "rpm3m": rpm3m, "rpm5m": rpm5m, "mrpm": mrpm
+        "v30": v30, "v1m": v1m, "v3m": v3m, "v5m": v5m, "mv": str(mv) if mv != "" else "",
+        "p30": p30, "p1m": p1m, "p3m": p3m, "p5m": p5m, "mp": str(mp) if mp != "" else "",
+        "pr30": pr30, "pr1m": pr1m, "pr3m": pr3m, "pr5m": pr5m, "mpr": str(mpr) if mpr != "" else "",
+        "vz30": vz30, "vz1m": vz1m, "vz3m": vz3m, "vz5m": vz5m, "mvz": str(int(mvz)) if mvz != "" else "",
+        "i30": i30, "i1m": i1m, "i3m": i3m, "i5m": i5m, "mi": str(mi) if mi != "" else "",
+        "rpm30": rpm30, "rpm1m": rpm1m, "rpm3m": rpm3m, "rpm5m": rpm5m, "mrpm": mrpm
     })
     st.markdown("---")
 
@@ -346,7 +351,7 @@ with col_btn1:
             p_sub.add_run(f"Máquina com conexão {am['voltagem_conexao']}").bold = True
             
             num_cols = 9 if incluir_rpm else 8
-            tbl = doc.add_table(rows=5, cols=num_cols)
+            tbl = doc.add_table(rows=6, cols=num_cols)
             tbl.style = 'Table Grid'
             tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
 
@@ -354,6 +359,7 @@ with col_btn1:
                 headers = ["Tempo de teste:", f"Partida a frio {am['partida']}", "Tensão (V) - 60 Hz", "Potência absorvida (kW)", "Pressão com bico", "Vazão (l/h)", "Corrente (A)", "RPM (rpm)", "Sample ID"]
                 rows_data = [
                     ("30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), str(am["rpm30"]), am["sample_id"]),
+                    ("1 min", "", str(am["v1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["i1m"]), str(am["rpm1m"]), ""),
                     ("3 min", "", str(am["v3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["i3m"]), str(am["rpm3m"]), ""),
                     ("5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), str(am["rpm5m"]), ""),
                     ("Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), str(am["mrpm"]), "")
@@ -362,6 +368,7 @@ with col_btn1:
                 headers = ["Tempo de teste:", f"Partida a frio {am['partida']}", "Tensão (V) - 60 Hz", "Potência absorvida (kW)", "Pressão com bico", "Vazão (l/h)", "Corrente (A)", "Sample ID"]
                 rows_data = [
                     ("30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), am["sample_id"]),
+                    ("1 min", "", str(am["v1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["i1m"]), ""),
                     ("3 min", "", str(am["v3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["i3m"]), ""),
                     ("5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), ""),
                     ("Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), "")
@@ -515,6 +522,7 @@ with col_btn2:
                 headers_pdf = ["Tempo:", f"Partida {am['partida']}", "Tensão (V)", "Potência (kW)", "Pressão", "Vazão (l/h)", "Corrente (A)", "RPM", "Sample ID"]
                 param_data = [headers_pdf]
                 param_data.append(["30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), str(am["rpm30"]), am["sample_id"]])
+                param_data.append(["1 min", "", str(am["v1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["i1m"]), str(am["rpm1m"]), ""])
                 param_data.append(["3 min", "", str(am["v3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["i3m"]), str(am["rpm3m"]), ""])
                 param_data.append(["5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), str(am["rpm5m"]), ""])
                 param_data.append(["Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), str(am["mrpm"]), ""])
@@ -523,6 +531,7 @@ with col_btn2:
                 headers_pdf = ["Tempo:", f"Partida {am['partida']}", "Tensão (V)", "Potência (kW)", "Pressão", "Vazão (l/h)", "Corrente (A)", "Sample ID"]
                 param_data = [headers_pdf]
                 param_data.append(["30s", "OK", str(am["v30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["i30"]), am["sample_id"]])
+                param_data.append(["1 min", "", str(am["v1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["i1m"]), ""])
                 param_data.append(["3 min", "", str(am["v3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["i3m"]), ""])
                 param_data.append(["5 min", "", str(am["v5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["i5m"]), ""])
                 param_data.append(["Média", "", str(am["mv"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mi"]), ""])

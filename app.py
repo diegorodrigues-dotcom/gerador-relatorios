@@ -1,8 +1,8 @@
 import streamlit as st
 import docx
-from docx.shared import Inches, Pt, RGBColor
+from docx.shared import Inches, Pt, RGBColor, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import io
@@ -49,6 +49,14 @@ def safe_float(val):
         return float(str(val).replace(',', '.'))
     except ValueError:
         return 0.0
+
+# Verifica se a logo está presente na pasta
+logo_path = os.path.join(os.path.dirname(__file__), "logo_karcher.png")
+if not os.path.exists(logo_path):
+    if os.path.exists("logo_karcher.png"):
+        logo_path = "logo_karcher.png"
+    else:
+        st.warning("⚠️ Imagem 'logo_karcher.png' não foi encontrada no GitHub.")
 
 # 1. CABEÇALHO / IDENTIFICAÇÃO GERAL
 st.header("1. Informações Gerais do Ensaio")
@@ -156,7 +164,6 @@ for idx in range(int(num_amostras)):
             rpm3m = st.text_input("3min (rpm)", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
             rpm5m = st.text_input("5min (rpm)", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
 
-    # CÁLCULO DE MÉDIAS (30s, 1min, 3min, 5min)
     num_v = [safe_float(v30), safe_float(v1m), safe_float(v3m), safe_float(v5m)]
     num_p = [safe_float(p30), safe_float(p1m), safe_float(p3m), safe_float(p5m)]
     num_pr = [safe_float(pr30), safe_float(pr1m), safe_float(pr3m), safe_float(pr5m)]
@@ -201,7 +208,8 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     doc = docx.Document()
 
     for section in doc.sections:
-        section.top_margin = Inches(0.8)
+        # Subindo o cabeçalho ajustando as margens superiores
+        section.top_margin = Inches(0.5)
         section.bottom_margin = Inches(0.8)
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
@@ -243,13 +251,19 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_it.font.size = Pt(10)
         r_it.font.color.rgb = RGBColor(50, 50, 50)
 
-    # CABEÇALHO: ARIAL TAMANHO 11 E LOGO KÄRCHER
+    # ----------------------------------------------------
+    # CABEÇALHO COM LOGO ALINHADO E TAMANHO EXATO (3,8 cm x 0,99 cm)
+    # ----------------------------------------------------
     tbl_hdr = doc.add_table(rows=1, cols=2)
     tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
     c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
     c_left.width, c_right.width = Inches(4.5), Inches(2.4)
+    c_left.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+    c_right.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
     p_dept = c_left.paragraphs[0]
+    p_dept.paragraph_format.space_before = Pt(0)
+    p_dept.paragraph_format.space_after = Pt(0)
     r_dept = p_dept.add_run("Departamento de testes e desenvolvimentos")
     r_dept.font.name = 'Arial'
     r_dept.bold = True
@@ -257,10 +271,11 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
     p_logo = c_right.paragraphs[0]
     p_logo.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p_logo.paragraph_format.space_before = Pt(0)
+    p_logo.paragraph_format.space_after = Pt(0)
     
-    logo_path = "logo_karcher.png"
     if os.path.exists(logo_path):
-        p_logo.add_run().add_picture(logo_path, width=Inches(2.2))
+        p_logo.add_run().add_picture(logo_path, width=Cm(3.8), height=Cm(0.99))
     else:
         r_logo = p_logo.add_run("KÄRCHER")
         r_logo.font.name = 'Arial'
@@ -270,45 +285,28 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     # TÍTULO: RELATÓRIO DE TESTE EM ARIAL TAMANHO 37
     p_main_title = doc.add_paragraph()
     p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_main_title.paragraph_format.space_before = Pt(18)
-    p_main_title.paragraph_format.space_after = Pt(24)
+    p_main_title.paragraph_format.space_before = Pt(12)
+    p_main_title.paragraph_format.space_after = Pt(18)
     r_title = p_main_title.add_run("Relatório de teste")
     r_title.font.name = 'Arial'
     r_title.bold = True
     r_title.font.size = Pt(37)
 
-    # Bloco Código ST
-    tbl_top = doc.add_table(rows=1, cols=2)
-    tbl_top.style = 'Table Grid'
-    tbl_top.alignment = WD_TABLE_ALIGNMENT.CENTER
-    c_st_label, c_st_val = tbl_top.rows[0].cells[0], tbl_top.rows[0].cells[1]
-    c_st_label.width, c_st_val.width = Inches(1.2), Inches(5.3)
-    
-    p0 = c_st_label.paragraphs[0]
-    r0 = p0.add_run("ST")
-    r0.font.name = 'Arial'
-    r0.bold, r0.font.size = True, Pt(14)
-
-    p1 = c_st_val.paragraphs[0]
-    r1 = p1.add_run(codigo_st)
-    r1.font.name = 'Arial'
-    r1.bold, r1.font.size = True, Pt(14)
-
-    doc.add_paragraph()
-
-    # Informações Gerais
-    tbl_meta = doc.add_table(rows=6, cols=2)
-    tbl_meta.style = 'Table Grid'
-    tbl_meta.alignment = WD_TABLE_ALIGNMENT.CENTER
-
+    # ----------------------------------------------------
+    # TABELA ÚNICA DE INFORMAÇÕES GERAIS (INCLUINDO ST)
+    # ----------------------------------------------------
     meta_info = [
+        ("ST", codigo_st),
         ("Teste realizado por", tecnico),
         ("Data", data_ensaio),
         ("Item testado", item_testado),
         ("Quantidade", str(num_amostras)),
-        ("Objetivo do teste", objetivo),
-        ("Critério de aprovação", normas)
+        ("Objetivo do teste", objetivo)
     ]
+
+    tbl_meta = doc.add_table(rows=len(meta_info), cols=2)
+    tbl_meta.style = 'Table Grid'
+    tbl_meta.alignment = WD_TABLE_ALIGNMENT.CENTER
 
     for i, (k, v) in enumerate(meta_info):
         row = tbl_meta.rows[i]

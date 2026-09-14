@@ -208,12 +208,53 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     doc = docx.Document()
 
     for section in doc.sections:
-        section.top_margin = Inches(0.4)
+        section.top_margin = Inches(0.8)
+        section.header_distance = Inches(0.4)
         section.bottom_margin = Inches(0.8)
         section.left_margin = Inches(0.8)
         section.right_margin = Inches(0.8)
         
-        # RODAPÉ: ARIAL TAMANHO 10
+        # ----------------------------------------------------
+        # DEFININDO O CABEÇALHO OFICIAL DO WORD (HEADER)
+        # ----------------------------------------------------
+        header = section.header
+        p_hdr_init = header.paragraphs[0]
+        p_hdr_init.text = ""  # Limpa parágrafo padrão do cabeçalho
+        
+        tbl_hdr = header.add_table(rows=1, cols=2, width=Inches(6.9))
+        tbl_hdr.autofit = False
+        tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
+        c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
+        
+        c_left.width = Cm(9.00)
+        c_right.width = Cm(6.00)
+        c_left.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        c_right.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+        p_dept = c_left.paragraphs[0]
+        p_dept.paragraph_format.space_before = Pt(0)
+        p_dept.paragraph_format.space_after = Pt(0)
+        r_dept = p_dept.add_run("Departamento de testes e desenvolvimentos")
+        r_dept.font.name = 'Arial'
+        r_dept.bold = True
+        r_dept.font.size = Pt(12)
+
+        p_logo = c_right.paragraphs[0]
+        p_logo.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        p_logo.paragraph_format.space_before = Pt(0)
+        p_logo.paragraph_format.space_after = Pt(0)
+        
+        if os.path.exists(logo_path):
+            p_logo.add_run().add_picture(logo_path, width=Cm(4.71), height=Cm(1.26))
+        else:
+            r_logo = p_logo.add_run("KÄRCHER")
+            r_logo.font.name = 'Arial'
+            r_logo.bold = True
+            r_logo.font.size = Pt(18)
+        
+        # ----------------------------------------------------
+        # DEFININDO O RODAPÉ OFICIAL DO WORD (FOOTER)
+        # ----------------------------------------------------
         footer = section.footer
         p_ft = footer.paragraphs[0]
         p_ft.text = ""
@@ -251,39 +292,8 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_it.font.color.rgb = RGBColor(50, 50, 50)
 
     # ----------------------------------------------------
-    # CABEÇALHO: COMPRIMENTO DA COLUNA ESQUERDA = 9,00 cm
+    # CORPO DO DOCUMENTO
     # ----------------------------------------------------
-    tbl_hdr = doc.add_table(rows=1, cols=2)
-    tbl_hdr.autofit = False
-    tbl_hdr.alignment = WD_TABLE_ALIGNMENT.CENTER
-    c_left, c_right = tbl_hdr.rows[0].cells[0], tbl_hdr.rows[0].cells[1]
-    
-    c_left.width = Cm(9.00)
-    c_right.width = Cm(6.00)
-    c_left.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
-    c_right.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
-
-    p_dept = c_left.paragraphs[0]
-    p_dept.paragraph_format.space_before = Pt(0)
-    p_dept.paragraph_format.space_after = Pt(0)
-    r_dept = p_dept.add_run("Departamento de testes e desenvolvimentos")
-    r_dept.font.name = 'Arial'
-    r_dept.bold = True
-    r_dept.font.size = Pt(12)
-
-    p_logo = c_right.paragraphs[0]
-    p_logo.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    p_logo.paragraph_format.space_before = Pt(0)
-    p_logo.paragraph_format.space_after = Pt(0)
-    
-    if os.path.exists(logo_path):
-        p_logo.add_run().add_picture(logo_path, width=Cm(4.71), height=Cm(1.26))
-    else:
-        r_logo = p_logo.add_run("KÄRCHER")
-        r_logo.font.name = 'Arial'
-        r_logo.bold = True
-        r_logo.font.size = Pt(18)
-
     # TÍTULO: RELATÓRIO DE TESTE EM ARIAL TAMANHO 37
     p_main_title = doc.add_paragraph()
     p_main_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -294,9 +304,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.bold = True
     r_title.font.size = Pt(37)
 
-    # ----------------------------------------------------
-    # TABELA UNIFICADA: COLUNA 1 LARGURA = 1,60 cm
-    # ----------------------------------------------------
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -317,7 +325,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         row = tbl_meta.rows[i]
         c0, c1 = row.cells[0], row.cells[1]
         
-        # Coluna 1 ajustada para 1,60 cm e Coluna 2 ajustada para 13,50 cm
         c0.width = Cm(1.60)
         c1.width = Cm(13.50)
         
@@ -327,7 +334,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_k.font.name = 'Arial'
         r_k.bold = True
         
-        # Suporta múltiplas linhas de texto para Critério de aprovação e Conclusão
         p_val = c1.paragraphs[0]
         linhas_v = v.split('\n') if v else [""]
         for idx_l, linha in enumerate(linhas_v):

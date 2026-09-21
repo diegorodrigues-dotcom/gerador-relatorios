@@ -307,7 +307,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.bold = True
     r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS (INCLUINDO TEMPO DE VIDA ÚTIL)
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -335,23 +335,23 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         set_cell_background(c0, "F2F2F2")
         
         p0 = c0.paragraphs[0]
-        p0.paragraph_format.space_before = Pt(2)
-        p0.paragraph_format.space_after = Pt(2)
+        p0.paragraph_format.space_before = Pt(3)
+        p0.paragraph_format.space_after = Pt(3)
         r_k = p0.add_run(k)
         r_k.font.name = 'Arial'
         r_k.font.size = Pt(10.5)
         r_k.bold = True
         
         p_val = c1.paragraphs[0]
-        p_val.paragraph_format.space_before = Pt(2)
-        p_val.paragraph_format.space_after = Pt(2)
+        p_val.paragraph_format.space_before = Pt(3)
+        p_val.paragraph_format.space_after = Pt(3)
         
         linhas_v = v.split('\n') if v else [""]
         for idx_l, linha in enumerate(linhas_v):
             if idx_l > 0:
                 p_val = c1.add_paragraph()
                 p_val.paragraph_format.space_before = Pt(0)
-                p_val.paragraph_format.space_after = Pt(2)
+                p_val.paragraph_format.space_after = Pt(3)
             r_v = p_val.add_run(linha)
             r_v.font.name = 'Arial'
             r_v.font.size = Pt(10.5)
@@ -396,6 +396,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         tbl = doc.add_table(rows=6, cols=num_cols)
         tbl.style = 'Table Grid'
         tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+        tbl.autofit = False
 
         hdr_partida = f"Partida a frio\n{am['partida_status']}"
 
@@ -437,7 +438,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 ("Média", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]))
             ]
         
-        # Preenchimento da LINHA 1 (Cabeçalhos em NEGRITO com fundo CINZA)
+        # Preenchimento da LINHA 1 (Cabeçalhos com fonte 9.5pt ampliada e espaçamento de 4pt)
         hdr_row = tbl.rows[0]
         prevent_row_split(hdr_row)
         for col_i, h_text in enumerate(headers):
@@ -446,13 +447,15 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             set_cell_background(cell, "A6A6A6")
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.space_before = Pt(4)
+            p.paragraph_format.space_after = Pt(4)
             r = p.add_run(h_text)
             r.font.name = 'Arial'
             r.bold = True
-            r.font.size = Pt(8.0 if incluir_rpm else 8.5)
+            r.font.size = Pt(9.0 if incluir_rpm else 9.5)
             r.font.color.rgb = RGBColor(0, 0, 0)
 
-        # Preenchimento das LINHAS 2 a 6 (dados)
+        # Preenchimento das LINHAS 2 a 6 (dados com fonte 10pt e espaçamento de 4pt)
         for r_idx, r_vals in enumerate(rows_data):
             row = tbl.rows[r_idx + 1]
             prevent_row_split(row)
@@ -463,9 +466,11 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             cell_tempo.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
             p_tempo = cell_tempo.paragraphs[0]
             p_tempo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_tempo.paragraph_format.space_before = Pt(4)
+            p_tempo.paragraph_format.space_after = Pt(4)
             r_t = p_tempo.add_run(r_vals[0])
             r_t.font.name = 'Arial'
-            r_t.font.size = Pt(8.5 if incluir_rpm else 9.0)
+            r_t.font.size = Pt(9.5 if incluir_rpm else 10.0)
             if is_linha_6_media:
                 r_t.bold = True
                 set_cell_background(cell_tempo, "A6A6A6")
@@ -477,9 +482,11 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 cell_val.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
                 p_v = cell_val.paragraphs[0]
                 p_v.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p_v.paragraph_format.space_before = Pt(4)
+                p_v.paragraph_format.space_after = Pt(4)
                 r_v = p_v.add_run(val_str)
                 r_v.font.name = 'Arial'
-                r_v.font.size = Pt(8.5 if incluir_rpm else 9.0)
+                r_v.font.size = Pt(9.5 if incluir_rpm else 10.0)
                 if is_linha_6_media:
                     r_v.bold = True
                     set_cell_background(cell_val, "A6A6A6")
@@ -492,10 +499,13 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         
         p_pf = cell_pf_merged.paragraphs[0]
         p_pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_pf.paragraph_format.space_before = Pt(4)
+        p_pf.paragraph_format.space_after = Pt(4)
         text_pf = "SIM" if am["partida_status"] == "Sim" else "NÃO"
         r_pf = p_pf.add_run(text_pf)
         r_pf.font.name = 'Arial'
-        r_pf.font.size = Pt(9.0)
+        r_pf.bold = True
+        r_pf.font.size = Pt(10.0)
 
         # Célula da Linha 6 (Média) na coluna de Partida a frio (cinza A6A6A6)
         set_cell_background(tbl.rows[5].cells[1], "A6A6A6")
@@ -509,10 +519,12 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         
         p_am_tbl = cell_am_merged.paragraphs[0]
         p_am_tbl.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_am_tbl.paragraph_format.space_before = Pt(4)
+        p_am_tbl.paragraph_format.space_after = Pt(4)
         r_am_tbl = p_am_tbl.add_run(am["sample_id"])
         r_am_tbl.font.name = 'Arial'
         r_am_tbl.bold = True
-        r_am_tbl.font.size = Pt(9.0)
+        r_am_tbl.font.size = Pt(10.0)
 
         doc.add_paragraph()
 
@@ -543,14 +555,18 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 cell_img = row_fotos.cells[f_i]
                 p_img = cell_img.paragraphs[0]
                 p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p_img.paragraph_format.space_before = Pt(4)
+                p_img.paragraph_format.space_after = Pt(4)
                 img_stream = io.BytesIO(f_file.read())
-                w_img = Inches(1.8) if cols_count <= 3 else Inches(1.3)
+                w_img = Inches(2.0) if cols_count <= 3 else Inches(1.5)
                 p_img.add_run().add_picture(img_stream, width=w_img)
         else:
             p_empty = row_fotos.cells[0].paragraphs[0]
+            p_empty.paragraph_format.space_before = Pt(4)
+            p_empty.paragraph_format.space_after = Pt(4)
             r_no_img = p_empty.add_run("[Sem imagens anexadas]")
             r_no_img.font.name = 'Arial'
-            r_no_img.font.size = Pt(9)
+            r_no_img.font.size = Pt(9.5)
             r_no_img.font.italic = True
         
         row_falhas = tbl_am_fail.rows[1]
@@ -565,7 +581,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         p_f_lbl.paragraph_format.space_after = Pt(2)
         r_f_hdr = p_f_lbl.add_run("Falhas / Defeitos apresentados:")
         r_f_hdr.font.name = 'Arial'
-        r_f_hdr.font.size = Pt(9.5)
+        r_f_hdr.font.size = Pt(10.0)
         r_f_hdr.bold = True
         
         p_f_txt = cell_falhas.add_paragraph()
@@ -573,7 +589,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         p_f_txt.paragraph_format.space_after = Pt(4)
         r_f_body = p_f_txt.add_run(am["defeitos"] if am["defeitos"] else "Nenhum defeito relatado.")
         r_f_body.font.name = 'Arial'
-        r_f_body.font.size = Pt(9.5)
+        r_f_body.font.size = Pt(10.0)
             
         doc.add_paragraph()
 
@@ -592,25 +608,44 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         set_cell_background(cell, "A6A6A6")
         p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = Pt(4)
+        p.paragraph_format.space_after = Pt(4)
         r_h = p.add_run(h_txt)
         r_h.font.name = 'Arial'
         r_h.bold = True
+        r_h.font.size = Pt(10.0)
 
     for r_i, am in enumerate(amostras_dados):
         row = tbl_res.rows[r_i+1]
         prevent_row_split(row)
         
-        r_s = row.cells[0].paragraphs[0].add_run(am["sample_id"])
+        p_s = row.cells[0].paragraphs[0]
+        p_s.paragraph_format.space_before = Pt(4)
+        p_s.paragraph_format.space_after = Pt(4)
+        r_s = p_s.add_run(am["sample_id"])
         r_s.font.name = 'Arial'
+        r_s.font.size = Pt(10.0)
         
-        r_h = row.cells[1].paragraphs[0].add_run(am["horas"])
+        p_h = row.cells[1].paragraphs[0]
+        p_h.paragraph_format.space_before = Pt(4)
+        p_h.paragraph_format.space_after = Pt(4)
+        r_h = p_h.add_run(am["horas"])
         r_h.font.name = 'Arial'
+        r_h.font.size = Pt(10.0)
         
-        r_e = row.cells[2].paragraphs[0].add_run(vida_util_geral if vida_util_geral else "600 horas")
+        p_e = row.cells[2].paragraphs[0]
+        p_e.paragraph_format.space_before = Pt(4)
+        p_e.paragraph_format.space_after = Pt(4)
+        r_e = p_e.add_run(vida_util_geral if vida_util_geral else "600 horas")
         r_e.font.name = 'Arial'
+        r_e.font.size = Pt(10.0)
         
-        r_f = row.cells[3].paragraphs[0].add_run("Identificadas no ensaio" if am["defeitos"] else "Nenhuma falha")
+        p_f = row.cells[3].paragraphs[0]
+        p_f.paragraph_format.space_before = Pt(4)
+        p_f.paragraph_format.space_after = Pt(4)
+        r_f = p_f.add_run("Identificadas no ensaio" if am["defeitos"] else "Nenhuma falha")
         r_f.font.name = 'Arial'
+        r_f.font.size = Pt(10.0)
 
     buffer = io.BytesIO()
     doc.save(buffer)

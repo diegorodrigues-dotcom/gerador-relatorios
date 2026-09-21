@@ -68,20 +68,19 @@ c1, c2, c3 = st.columns(3)
 with c1:
     codigo_st = st.text_input("ST", value="", placeholder="Ex: 001941")
     objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
+    conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
+        value="", 
+        height=120,
+        placeholder="Digite aqui a conclusão e parecer técnico geral...")
 
 with c2:
     tecnico = st.text_input("Responsável", value="", placeholder="Digite seu nome...")
-    normas = st.text_area("Critério de Aprovação / Normas", value="", height=80, placeholder="Digite os critérios / normas...")
+    normas = st.text_area("Critério de Aprovação / Normas", value="", height=120, placeholder="Digite os critérios / normas...")
 
 with c3:
     item_testado = st.text_input("Item Testado", value="", placeholder="O que você está testando?...")
     data_ensaio = st.text_input("Data do Teste", value="", placeholder="Ex: 01/01/2026")
     vida_util_geral = st.text_input("Tempo de vida útil", value="", placeholder="Ex: 600 horas")
-
-conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
-    value="", 
-    height=120,
-    placeholder="Digite aqui a conclusão e parecer técnico geral...")
 
 st.markdown("---")
 

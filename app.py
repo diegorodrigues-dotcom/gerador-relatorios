@@ -74,6 +74,17 @@ def format_horas(val_texto):
             return f"{val_num} horas"
     return val_clean
 
+def format_voltagem(val_texto):
+    """ Adiciona automaticamente o 'V' ao final da tensão se o usuário não digitar """
+    if not val_texto:
+        return ""
+    val_clean = str(val_texto).strip()
+    if val_clean.isdigit():
+        return f"{val_clean}V"
+    if not val_clean.upper().endswith("V"):
+        return f"{val_clean}V"
+    return val_clean.upper()
+
 # Verifica se a logo está presente na pasta
 logo_path = os.path.join(os.path.dirname(__file__), "logo_karcher.png")
 if not os.path.exists(logo_path):
@@ -127,7 +138,8 @@ for idx in range(int(num_amostras)):
     col_a, col_b, col_c = st.columns(3)
     with col_a:
         sample_id = st.text_input("Modelo", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
-        voltagem_conexao = st.text_input("Tensão (V)", value="", placeholder="127V / 220V", key=f"volt_{idx}")
+        voltagem_input = st.text_input("Tensão (V)", value="", placeholder="127V / 220V", key=f"volt_{idx}")
+        voltagem_conexao = format_voltagem(voltagem_input)
     with col_b:
         col_p1, col_p2 = st.columns([1, 1])
         with col_p1:
@@ -332,7 +344,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.bold = True
     r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS (INCLUINDO TEMPO DE VIDA ÚTIL)
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -553,14 +565,17 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
         doc.add_paragraph()
 
-    # SEÇÃO 2: DURABILIDADE COM TABELA DE FOTOS E FALHAS
-    p_sec2 = doc.add_paragraph().add_run("2- Durabilidade conforme norma KN 082.023 cap. 4.7.1")
+    # SEÇÃO 2: EVIDÊNCIAS OBTIDAS NO ENSAIO (TÍTULO ATUALIZADO)
+    p_sec2 = doc.add_paragraph().add_run("2- Evidências obtidas no ensaio")
     p_sec2.font.name = 'Arial'
     p_sec2.bold = True
 
     for am in amostras_dados:
         p_am = doc.add_paragraph()
-        r_am = p_am.add_run(f"• {am['sample_id']} ({am['voltagem_conexao']}) - Após {am['horas']}:")
+        # Formatação ajustada para: • AM1 (220V) - Após 316 horas:
+        v_str = f" ({am['voltagem_conexao']})" if am['voltagem_conexao'] else ""
+        h_str = f"Após {am['horas']}" if am['horas'] else "Após o ensaio"
+        r_am = p_am.add_run(f"• {am['sample_id']}{v_str} - {h_str}:")
         r_am.font.name = 'Arial'
         r_am.bold = True
         

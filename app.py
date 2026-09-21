@@ -7,6 +7,7 @@ from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 import io
 import os
+import math
 
 # Configuração da página Web
 st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
@@ -565,14 +566,13 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
         doc.add_paragraph()
 
-    # SEÇÃO 2: EVIDÊNCIAS OBTIDAS NO ENSAIO (TÍTULO ATUALIZADO)
+    # SEÇÃO 2: EVIDÊNCIAS OBTIDAS NO ENSAIO
     p_sec2 = doc.add_paragraph().add_run("2- Evidências obtidas no ensaio")
     p_sec2.font.name = 'Arial'
     p_sec2.bold = True
 
     for am in amostras_dados:
         p_am = doc.add_paragraph()
-        # Formatação ajustada para: • AM1 (220V) - Após 316 horas:
         v_str = f" ({am['voltagem_conexao']})" if am['voltagem_conexao'] else ""
         h_str = f"Após {am['horas']}" if am['horas'] else "Após o ensaio"
         r_am = p_am.add_run(f"• {am['sample_id']}{v_str} - {h_str}:")
@@ -581,27 +581,48 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         
         fotos_list = am["fotos"] if am["fotos"] else []
         num_fotos = len(fotos_list)
-        cols_count = max(num_fotos, 1)
         
-        tbl_am_fail = doc.add_table(rows=2, cols=cols_count)
+        # REGRA DE GRADE FIXA EM 3 COLUNAS
+        num_linhas_fotos = math.ceil(num_fotos / 3) if num_fotos > 0 else 1
+        total_rows_tbl = num_linhas_fotos + 1  # Linhas de imagens + 1 linha final de defeitos
+        
+        tbl_am_fail = doc.add_table(rows=total_rows_tbl, cols=3)
         tbl_am_fail.style = 'Table Grid'
         tbl_am_fail.alignment = WD_TABLE_ALIGNMENT.CENTER
         
-        row_fotos = tbl_am_fail.rows[0]
-        prevent_row_split(row_fotos)
-        
         if num_fotos > 0:
             for f_i, f_file in enumerate(fotos_list):
-                cell_img = row_fotos.cells[f_i]
+                row_idx = f_i // 3
+                
+                # Tratamento de Alinhamento e Posição (Grade de 3 Colunas)
+                items_na_linha = min(3, num_fotos - (row_idx * 3))
+                
+                if items_na_linha == 1:
+                    # Se tiver 1 imagem na linha (ex: a 4ª imagem), coloca na coluna do meio (col 1)
+                    col_idx = 1
+                elif items_na_linha == 2:
+                    # Se tiver 2 imagens na linha (ex: 4ª e 5ª imagens), ocupa as colunas 0 e 1 (ou centraliza)
+                    col_idx = f_i % 3
+                else:
+                    col_idx = f_i % 3
+
+                row_img = tbl_am_fail.rows[row_idx]
+                prevent_row_split(row_img)
+                cell_img = row_img.cells[col_idx]
+                cell_img.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+                
                 p_img = cell_img.paragraphs[0]
                 p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 p_img.paragraph_format.space_before = Pt(4)
                 p_img.paragraph_format.space_after = Pt(4)
+                
                 img_stream = io.BytesIO(f_file.read())
-                w_img = Inches(2.0) if cols_count <= 3 else Inches(1.5)
-                p_img.add_run().add_picture(img_stream, width=w_img)
+                p_img.add_run().add_picture(img_stream, width=Inches(1.8))
         else:
-            p_empty = row_fotos.cells[0].paragraphs[0]
+            row_img = tbl_am_fail.rows[0]
+            prevent_row_split(row_img)
+            p_empty = row_img.cells[1].paragraphs[0]
+            p_empty.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p_empty.paragraph_format.space_before = Pt(4)
             p_empty.paragraph_format.space_after = Pt(4)
             r_no_img = p_empty.add_run("[Sem imagens anexadas]")
@@ -609,12 +630,12 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r_no_img.font.size = Pt(9.5)
             r_no_img.font.italic = True
         
-        row_falhas = tbl_am_fail.rows[1]
+        # LINHA FINAL DA TABELA: LISTA DE DEFALHAS (MESCLANDO AS 3 COLUNAS)
+        row_falhas = tbl_am_fail.rows[num_linhas_fotos]
         prevent_row_split(row_falhas)
         
         cell_falhas = row_falhas.cells[0]
-        if cols_count > 1:
-            cell_falhas = cell_falhas.merge(row_falhas.cells[cols_count - 1])
+        cell_falhas = cell_falhas.merge(row_falhas.cells[2])
             
         p_f_lbl = cell_falhas.paragraphs[0]
         p_f_lbl.paragraph_format.space_before = Pt(4)

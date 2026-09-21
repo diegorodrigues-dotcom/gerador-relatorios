@@ -27,6 +27,16 @@ def prevent_row_split(row):
     trPr = row._tr.get_or_add_trPr()
     trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
 
+def prevent_table_split(table):
+    """ Impede totalmente que o Word quebre a tabela entre páginas """
+    for row_idx, row in enumerate(table.rows):
+        prevent_row_split(row)
+        # Se não for a última linha, força os parágrafos a ficarem presos com os da próxima linha
+        if row_idx < len(table.rows) - 1:
+            for cell in row.cells:
+                for p in cell.paragraphs:
+                    p.paragraph_format.keep_with_next = True
+
 def add_field(paragraph, field_type):
     run = paragraph.add_run()
     fldChar1 = OxmlElement('w:fldChar')
@@ -224,13 +234,20 @@ for idx in range(int(num_amostras)):
 
     fotos_uploaded = st.file_uploader(f"Anexar Imagens para {sample_id if sample_id else f'Amostra {idx+1}'}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
 
+    # Leitura prévia dos bytes das fotos
+    fotos_bytes = []
+    if fotos_uploaded:
+        for f in fotos_uploaded:
+            f.seek(0)
+            fotos_bytes.append(f.read())
+
     amostras_dados.append({
         "sample_id": sample_id if sample_id else f"AM {idx+1}",
         "voltagem_conexao": voltagem_conexao,
         "partida_status": partida_status,
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
-        "fotos": fotos_uploaded,
+        "fotos": fotos_bytes,
         "v30": fmt_br(v30), "v1m": fmt_br(v1m), "v3m": fmt_br(v3m), "v5m": fmt_br(v5m), "mv": fmt_br(mv),
         "i30": fmt_br(i30), "i1m": fmt_br(i1m), "i3m": fmt_br(i3m), "i5m": fmt_br(i5m), "mi": fmt_br(mi),
         "p30": fmt_br(p30), "p1m": fmt_br(p1m), "p3m": fmt_br(p3m), "p5m": fmt_br(p5m), "mp": fmt_br(mp),
@@ -564,10 +581,14 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_am_tbl.bold = True
         r_am_tbl.font.size = Pt(10.0)
 
+        # Impede também que a tabela de parâmetros se quebre internamente
+        prevent_table_split(tbl)
+
         doc.add_paragraph()
 
     # SEÇÃO 2: EVIDÊNCIAS OBTIDAS NO ENSAIO
     p_sec2 = doc.add_paragraph()
+    p_sec2.paragraph_format.keep_with_next = True  # Mantém o TÍTULO 2 preso à primeira amostra
     p_sec2.paragraph_format.space_before = Pt(6)
     p_sec2.paragraph_format.space_after = Pt(6)
     r_sec2 = p_sec2.add_run("2- Evidências obtidas no ensaio")
@@ -575,9 +596,8 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_sec2.bold = True
 
     for am in amostras_dados:
-        # TÍTULO DA AMOSTRA (MANTÉM JUNTO COM A TABELA SEGUINTE PARA NÃO DIVIDIR A PÁGINA)
         p_am = doc.add_paragraph()
-        p_am.paragraph_format.keep_with_next = True
+        p_am.paragraph_format.keep_with_next = True  # Mantém o rótulo da amostra preso à tabela de fotos
         p_am.paragraph_format.space_before = Pt(6)
         p_am.paragraph_format.space_after = Pt(2)
         
@@ -592,14 +612,14 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         
         # REGRA DE GRADE FIXA EM 3 COLUNAS
         num_linhas_fotos = math.ceil(num_fotos / 3) if num_fotos > 0 else 1
-        total_rows_tbl = num_linhas_fotos + 1  # Linhas de imagens + 1 linha final de defeitos
+        total_rows_tbl = num_linhas_fotos + 1
         
         tbl_am_fail = doc.add_table(rows=total_rows_tbl, cols=3)
         tbl_am_fail.style = 'Table Grid'
         tbl_am_fail.alignment = WD_TABLE_ALIGNMENT.CENTER
         
         if num_fotos > 0:
-            for f_i, f_file in enumerate(fotos_list):
+            for f_i, img_bytes in enumerate(fotos_list):
                 row_idx = f_i // 3
                 items_na_linha = min(3, num_fotos - (row_idx * 3))
                 
@@ -611,7 +631,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                     col_idx = f_i % 3
 
                 row_img = tbl_am_fail.rows[row_idx]
-                prevent_row_split(row_img)  # Evita corte interno de linha
                 
                 cell_img = row_img.cells[col_idx]
                 cell_img.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
@@ -621,11 +640,10 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 p_img.paragraph_format.space_before = Pt(4)
                 p_img.paragraph_format.space_after = Pt(4)
                 
-                img_stream = io.BytesIO(f_file.read())
+                img_stream = io.BytesIO(img_bytes)
                 p_img.add_run().add_picture(img_stream, width=Inches(1.8))
         else:
             row_img = tbl_am_fail.rows[0]
-            prevent_row_split(row_img)
             p_empty = row_img.cells[1].paragraphs[0]
             p_empty.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p_empty.paragraph_format.space_before = Pt(4)
@@ -635,9 +653,8 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r_no_img.font.size = Pt(9.5)
             r_no_img.font.italic = True
         
-        # LINHA FINAL DA TABELA: LISTA DE DEFEITOS (IMPEDE QUEBRA ENTRE PÁGINAS)
+        # LINHA FINAL DA TABELA: LISTA DE DEFEITOS
         row_falhas = tbl_am_fail.rows[num_linhas_fotos]
-        prevent_row_split(row_falhas)
         
         cell_falhas = row_falhas.cells[0]
         cell_falhas = cell_falhas.merge(row_falhas.cells[2])
@@ -657,6 +674,9 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_f_body.font.name = 'Arial'
         r_f_body.font.size = Pt(10.0)
             
+        # APLICA PROTEÇÃO RIGOROSA PARA MANTER TODAS AS LINHAS DA TABELA JUNTAS
+        prevent_table_split(tbl_am_fail)
+
         doc.add_paragraph()
 
     # RESUMO DE DURABILIDADE
@@ -685,7 +705,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
     for r_i, am in enumerate(amostras_dados):
         row = tbl_res.rows[r_i+1]
-        prevent_row_split(row)
         
         p_s = row.cells[0].paragraphs[0]
         p_s.paragraph_format.space_before = Pt(4)
@@ -714,6 +733,8 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_f = p_f.add_run("Identificadas no ensaio" if am["defeitos"] else "Nenhuma falha")
         r_f.font.name = 'Arial'
         r_f.font.size = Pt(10.0)
+
+    prevent_table_split(tbl_res)
 
     buffer = io.BytesIO()
     doc.save(buffer)

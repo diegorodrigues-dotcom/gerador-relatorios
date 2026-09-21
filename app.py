@@ -53,6 +53,12 @@ def safe_float(val):
     except ValueError:
         return 0.0
 
+def fmt_br(val):
+    """Converte o float/string para o formato com vírgula (ex: 220,8)"""
+    if val == "" or val is None:
+        return ""
+    return str(val).replace('.', ',')
+
 def format_horas(val_texto):
     """ Adiciona automaticamente o sufixo 'horas' caso o usuário digite apenas números """
     if not val_texto:
@@ -212,12 +218,12 @@ for idx in range(int(num_amostras)):
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
         "fotos": fotos_uploaded,
-        "v30": v30, "v1m": v1m, "v3m": v3m, "v5m": v5m, "mv": str(mv) if mv != "" else "",
-        "i30": i30, "i1m": i1m, "i3m": i3m, "i5m": i5m, "mi": str(mi) if mi != "" else "",
-        "p30": p30, "p1m": p1m, "p3m": p3m, "p5m": p5m, "mp": str(mp) if mp != "" else "",
-        "pr30": pr30, "pr1m": pr1m, "pr3m": pr3m, "pr5m": pr5m, "mpr": str(mpr) if mpr != "" else "",
-        "vz30": vz30, "vz1m": vz1m, "vz3m": vz3m, "vz5m": vz5m, "mvz": str(int(mvz)) if mvz != "" else "",
-        "rpm30": rpm30, "rpm1m": rpm1m, "rpm3m": rpm3m, "rpm5m": rpm5m, "mrpm": mrpm
+        "v30": fmt_br(v30), "v1m": fmt_br(v1m), "v3m": fmt_br(v3m), "v5m": fmt_br(v5m), "mv": fmt_br(mv),
+        "i30": fmt_br(i30), "i1m": fmt_br(i1m), "i3m": fmt_br(i3m), "i5m": fmt_br(i5m), "mi": fmt_br(mi),
+        "p30": fmt_br(p30), "p1m": fmt_br(p1m), "p3m": fmt_br(p3m), "p5m": fmt_br(p5m), "mp": fmt_br(mp),
+        "pr30": fmt_br(pr30), "pr1m": fmt_br(pr1m), "pr3m": fmt_br(pr3m), "pr5m": fmt_br(pr5m), "mpr": fmt_br(mpr),
+        "vz30": fmt_br(vz30), "vz1m": fmt_br(vz1m), "vz3m": fmt_br(vz3m), "vz5m": fmt_br(vz5m), "mvz": fmt_br(int(mvz) if mvz != "" else ""),
+        "rpm30": fmt_br(rpm30), "rpm1m": fmt_br(rpm1m), "rpm3m": fmt_br(rpm3m), "rpm5m": fmt_br(rpm5m), "mrpm": fmt_br(mrpm)
     })
     st.markdown("---")
 

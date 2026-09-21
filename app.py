@@ -76,6 +76,7 @@ with c2:
 with c3:
     item_testado = st.text_input("Item Testado", value="", placeholder="O que você está testando?...")
     data_ensaio = st.text_input("Data do Teste", value="", placeholder="Ex: 01/01/2026")
+    vida_util_geral = st.text_input("Tempo de vida útil", value="", placeholder="Ex: 600 horas")
 
 conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
     value="", 
@@ -307,13 +308,14 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.bold = True
     r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS (INCLUINDO TEMPO DE VIDA ÚTIL)
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
         ("Data", data_ensaio),
         ("Item testado", item_testado),
         ("Quantidade", str(num_amostras)),
+        ("Tempo de vida útil", vida_util_geral),
         ("Objetivo do teste", objetivo),
         ("Critério de aprovação", normas)
     ]
@@ -605,7 +607,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_h = row.cells[1].paragraphs[0].add_run(am["horas"])
         r_h.font.name = 'Arial'
         
-        r_e = row.cells[2].paragraphs[0].add_run("60 h")
+        r_e = row.cells[2].paragraphs[0].add_run(vida_util_geral if vida_util_geral else "600 horas")
         r_e.font.name = 'Arial'
         
         r_f = row.cells[3].paragraphs[0].add_run("Identificadas no ensaio" if am["defeitos"] else "Nenhuma falha")

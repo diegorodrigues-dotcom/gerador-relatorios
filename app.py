@@ -28,10 +28,9 @@ def prevent_row_split(row):
     trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
 
 def prevent_table_split(table):
-    """ Impede totalmente que o Word quebre a tabela entre páginas """
+    """ Impede que as linhas da tabela se dividam entre páginas """
     for row_idx, row in enumerate(table.rows):
         prevent_row_split(row)
-        # Se não for a última linha, força os parágrafos a ficarem presos com os da próxima linha
         if row_idx < len(table.rows) - 1:
             for cell in row.cells:
                 for p in cell.paragraphs:
@@ -581,23 +580,27 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_am_tbl.bold = True
         r_am_tbl.font.size = Pt(10.0)
 
-        # Impede também que a tabela de parâmetros se quebre internamente
         prevent_table_split(tbl)
 
         doc.add_paragraph()
 
     # SEÇÃO 2: EVIDÊNCIAS OBTIDAS NO ENSAIO
     p_sec2 = doc.add_paragraph()
-    p_sec2.paragraph_format.keep_with_next = True  # Mantém o TÍTULO 2 preso à primeira amostra
+    p_sec2.paragraph_format.keep_with_next = True
     p_sec2.paragraph_format.space_before = Pt(6)
     p_sec2.paragraph_format.space_after = Pt(6)
     r_sec2 = p_sec2.add_run("2- Evidências obtidas no ensaio")
     r_sec2.font.name = 'Arial'
     r_sec2.bold = True
 
-    for am in amostras_dados:
+    for am_idx, am in enumerate(amostras_dados):
         p_am = doc.add_paragraph()
-        p_am.paragraph_format.keep_with_next = True  # Mantém o rótulo da amostra preso à tabela de fotos
+        
+        # Garante que cada amostra a partir da 2ª inicie em uma NOVA PÁGINA inteira
+        if am_idx > 0:
+            p_am.paragraph_format.page_break_before = True
+            
+        p_am.paragraph_format.keep_with_next = True
         p_am.paragraph_format.space_before = Pt(6)
         p_am.paragraph_format.space_after = Pt(2)
         
@@ -674,7 +677,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_f_body.font.name = 'Arial'
         r_f_body.font.size = Pt(10.0)
             
-        # APLICA PROTEÇÃO RIGOROSA PARA MANTER TODAS AS LINHAS DA TABELA JUNTAS
         prevent_table_split(tbl_am_fail)
 
         doc.add_paragraph()

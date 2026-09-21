@@ -567,12 +567,20 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         doc.add_paragraph()
 
     # SEÇÃO 2: EVIDÊNCIAS OBTIDAS NO ENSAIO
-    p_sec2 = doc.add_paragraph().add_run("2- Evidências obtidas no ensaio")
-    p_sec2.font.name = 'Arial'
-    p_sec2.bold = True
+    p_sec2 = doc.add_paragraph()
+    p_sec2.paragraph_format.space_before = Pt(6)
+    p_sec2.paragraph_format.space_after = Pt(6)
+    r_sec2 = p_sec2.add_run("2- Evidências obtidas no ensaio")
+    r_sec2.font.name = 'Arial'
+    r_sec2.bold = True
 
     for am in amostras_dados:
+        # TÍTULO DA AMOSTRA (MANTÉM JUNTO COM A TABELA SEGUINTE PARA NÃO DIVIDIR A PÁGINA)
         p_am = doc.add_paragraph()
+        p_am.paragraph_format.keep_with_next = True
+        p_am.paragraph_format.space_before = Pt(6)
+        p_am.paragraph_format.space_after = Pt(2)
+        
         v_str = f" ({am['voltagem_conexao']})" if am['voltagem_conexao'] else ""
         h_str = f"Após {am['horas']}" if am['horas'] else "Após o ensaio"
         r_am = p_am.add_run(f"• {am['sample_id']}{v_str} - {h_str}:")
@@ -593,21 +601,18 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         if num_fotos > 0:
             for f_i, f_file in enumerate(fotos_list):
                 row_idx = f_i // 3
-                
-                # Tratamento de Alinhamento e Posição (Grade de 3 Colunas)
                 items_na_linha = min(3, num_fotos - (row_idx * 3))
                 
                 if items_na_linha == 1:
-                    # Se tiver 1 imagem na linha (ex: a 4ª imagem), coloca na coluna do meio (col 1)
                     col_idx = 1
                 elif items_na_linha == 2:
-                    # Se tiver 2 imagens na linha (ex: 4ª e 5ª imagens), ocupa as colunas 0 e 1 (ou centraliza)
                     col_idx = f_i % 3
                 else:
                     col_idx = f_i % 3
 
                 row_img = tbl_am_fail.rows[row_idx]
-                prevent_row_split(row_img)
+                prevent_row_split(row_img)  # Evita corte interno de linha
+                
                 cell_img = row_img.cells[col_idx]
                 cell_img.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
                 
@@ -630,7 +635,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r_no_img.font.size = Pt(9.5)
             r_no_img.font.italic = True
         
-        # LINHA FINAL DA TABELA: LISTA DE DEFALHAS (MESCLANDO AS 3 COLUNAS)
+        # LINHA FINAL DA TABELA: LISTA DE DEFEITOS (IMPEDE QUEBRA ENTRE PÁGINAS)
         row_falhas = tbl_am_fail.rows[num_linhas_fotos]
         prevent_row_split(row_falhas)
         
@@ -655,9 +660,11 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         doc.add_paragraph()
 
     # RESUMO DE DURABILIDADE
-    p_res_lbl = doc.add_paragraph().add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras")
-    p_res_lbl.font.name = 'Arial'
-    p_res_lbl.bold = True
+    p_res_lbl = doc.add_paragraph()
+    p_res_lbl.paragraph_format.keep_with_next = True
+    r_res_lbl = p_res_lbl.add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras")
+    r_res_lbl.font.name = 'Arial'
+    r_res_lbl.bold = True
     
     tbl_res = doc.add_table(rows=len(amostras_dados)+1, cols=4)
     tbl_res.style = 'Table Grid'

@@ -102,7 +102,7 @@ for idx in range(int(num_amostras)):
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        sample_id = st.text_input("Amostra", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
+        sample_id = st.text_input("Modelo", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
         voltagem_conexao = st.text_input("Tensão", value="", placeholder="127V / 220V", key=f"volt_{idx}")
     with col_b:
         col_p1, col_p2 = st.columns([1, 1])
@@ -391,8 +391,6 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_sec1.bold = True
 
     for am in amostras_dados:
-        # Texto "Máquina com conexão" foi removido completamente
-        
         num_cols = 9 if incluir_rpm else 8
         tbl = doc.add_table(rows=6, cols=num_cols)
         tbl.style = 'Table Grid'
@@ -438,13 +436,13 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 ("Média", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]))
             ]
         
-        # Preenchimento da LINHA 1 (Cabeçalhos com FUNDO CINZA A6A6A6 e texto em NEGRITO)
+        # Preenchimento da LINHA 1 (Cabeçalhos em NEGRITO com fundo CINZA)
         hdr_row = tbl.rows[0]
         prevent_row_split(hdr_row)
         for col_i, h_text in enumerate(headers):
             cell = hdr_row.cells[col_i]
             cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
-            set_cell_background(cell, "A6A6A6")  # Cor cinza garantida na Linha 1
+            set_cell_background(cell, "A6A6A6")
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(h_text)
@@ -457,7 +455,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         for r_idx, r_vals in enumerate(rows_data):
             row = tbl.rows[r_idx + 1]
             prevent_row_split(row)
-            is_linha_6_media = (r_vals[0] == "Média")  # Linha 6 da tabela é a Média
+            is_linha_6_media = (r_vals[0] == "Média")
             
             # Coluna 0: Tempo de teste
             cell_tempo = row.cells[0]
@@ -469,7 +467,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r_t.font.size = Pt(8.5 if incluir_rpm else 9.0)
             if is_linha_6_media:
                 r_t.bold = True
-                set_cell_background(cell_tempo, "A6A6A6")  # Cor cinza na Linha 6
+                set_cell_background(cell_tempo, "A6A6A6")
 
             # Colunas de valores numéricos
             for num_col_i, val_str in enumerate(r_vals[1:]):
@@ -483,7 +481,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 r_v.font.size = Pt(8.5 if incluir_rpm else 9.0)
                 if is_linha_6_media:
                     r_v.bold = True
-                    set_cell_background(cell_val, "A6A6A6")  # Cor cinza na Linha 6
+                    set_cell_background(cell_val, "A6A6A6")
 
         # MESCLAGEM DA COLUNA "Partida a frio" (Linhas 30s a 5min)
         cell_pf_top = tbl.rows[1].cells[1]

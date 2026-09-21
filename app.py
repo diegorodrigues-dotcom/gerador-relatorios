@@ -102,7 +102,7 @@ for idx in range(int(num_amostras)):
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        sample_id = st.text_input(f"Sample ID", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
+        sample_id = st.text_input("Amostra", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
         voltagem_conexao = st.text_input("Tensão", value="", placeholder="127V / 220V", key=f"volt_{idx}")
     with col_b:
         col_p1, col_p2 = st.columns([1, 1])
@@ -111,7 +111,7 @@ for idx in range(int(num_amostras)):
         with col_p2:
             tensao_partida = st.text_input("Tensão de Partida", value="", placeholder="Ex: 94V", key=f"p_tensao_{idx}")
         
-        partida = f"{partiu_frio} ({tensao_partida})" if tensao_partida else partiu_frio
+        partida_status = partiu_frio
         horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h", key=f"h_{idx}")
     with col_c:
         defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
@@ -187,9 +187,9 @@ for idx in range(int(num_amostras)):
     fotos_uploaded = st.file_uploader(f"Anexar Imagens para {sample_id if sample_id else f'Amostra {idx+1}'}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
 
     amostras_dados.append({
-        "sample_id": sample_id,
+        "sample_id": sample_id if sample_id else f"AM {idx+1}",
         "voltagem_conexao": voltagem_conexao,
-        "partida": partida,
+        "partida_status": partida_status,
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
         "fotos": fotos_uploaded,
@@ -307,7 +307,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.bold = True
     r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS (SEM A CONCLUSÃO)
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -357,7 +357,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
     doc.add_paragraph()
 
-    # SEÇÃO DE CONCLUSÃO (FORA DA TABELA)
+    # SEÇÃO DE CONCLUSÃO
     p_conc_title = doc.add_paragraph()
     p_conc_title.paragraph_format.space_before = Pt(6)
     p_conc_title.paragraph_format.space_after = Pt(2)
@@ -391,60 +391,60 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_sec1.bold = True
 
     for am in amostras_dados:
-        p_sub = doc.add_paragraph()
-        r_sub = p_sub.add_run(f"Máquina com conexão {am['voltagem_conexao']}")
-        r_sub.font.name = 'Arial'
-        r_sub.bold = True
+        # Texto "Máquina com conexão" foi removido completamente
         
         num_cols = 9 if incluir_rpm else 8
         tbl = doc.add_table(rows=6, cols=num_cols)
         tbl.style = 'Table Grid'
         tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
 
-        # NOVA SEQUÊNCIA DE COLUNAS SOLICITADA
+        hdr_partida = f"Partida a frio\n{am['partida_status']}"
+
         if incluir_rpm:
             headers = [
                 "Tempo de teste:", 
-                f"Partida a frio {am['partida']}", 
-                "Tensão (V) - 60 Hz", 
+                hdr_partida, 
+                "Tensão (V) -\n60 Hz", 
                 "Corrente (A)", 
-                "Potência absorvida (kW)", 
-                "Pressão com bico (bar)", 
+                "Potência\nabsorvida\n(kW)", 
+                "Pressão com\nbico", 
                 "Vazão (l/h)", 
                 "RPM (rpm)", 
-                "Sample ID"
+                "Amostra"
             ]
             rows_data = [
-                ("30s", "OK", str(am["v30"]), str(am["i30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["rpm30"]), am["sample_id"]),
-                ("1 min", "", str(am["v1m"]), str(am["i1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["rpm1m"]), ""),
-                ("3 min", "", str(am["v3m"]), str(am["i3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["rpm3m"]), ""),
-                ("5 min", "", str(am["v5m"]), str(am["i5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["rpm5m"]), ""),
-                ("Média", "", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mrpm"]), "")
+                ("30s", str(am["v30"]), str(am["i30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), str(am["rpm30"])),
+                ("1 min", str(am["v1m"]), str(am["i1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["rpm1m"])),
+                ("3 min", str(am["v3m"]), str(am["i3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["rpm3m"])),
+                ("5 min", str(am["v5m"]), str(am["i5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["rpm5m"])),
+                ("Média", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mrpm"]))
             ]
         else:
             headers = [
                 "Tempo de teste:", 
-                f"Partida a frio {am['partida']}", 
-                "Tensão (V) - 60 Hz", 
+                hdr_partida, 
+                "Tensão (V) -\n60 Hz", 
                 "Corrente (A)", 
-                "Potência absorvida (kW)", 
-                "Pressão com bico (bar)", 
+                "Potência\nabsorvida\n(kW)", 
+                "Pressão com\nbico", 
                 "Vazão (l/h)", 
-                "Sample ID"
+                "Amostra"
             ]
             rows_data = [
-                ("30s", "OK", str(am["v30"]), str(am["i30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"]), am["sample_id"]),
-                ("1 min", "", str(am["v1m"]), str(am["i1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), ""),
-                ("3 min", "", str(am["v3m"]), str(am["i3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), ""),
-                ("5 min", "", str(am["v5m"]), str(am["i5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), ""),
-                ("Média", "", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), "")
+                ("30s", str(am["v30"]), str(am["i30"]), str(am["p30"]), str(am["pr30"]), str(am["vz30"])),
+                ("1 min", str(am["v1m"]), str(am["i1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"])),
+                ("3 min", str(am["v3m"]), str(am["i3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"])),
+                ("5 min", str(am["v5m"]), str(am["i5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"])),
+                ("Média", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]))
             ]
         
+        # Preenchimento da LINHA 1 (Cabeçalhos com FUNDO CINZA A6A6A6 e texto em NEGRITO)
         hdr_row = tbl.rows[0]
         prevent_row_split(hdr_row)
         for col_i, h_text in enumerate(headers):
             cell = hdr_row.cells[col_i]
-            set_cell_background(cell, "A6A6A6")
+            cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+            set_cell_background(cell, "A6A6A6")  # Cor cinza garantida na Linha 1
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(h_text)
@@ -453,64 +453,139 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r.font.size = Pt(8.0 if incluir_rpm else 8.5)
             r.font.color.rgb = RGBColor(0, 0, 0)
 
+        # Preenchimento das LINHAS 2 a 6 (dados)
         for r_idx, r_vals in enumerate(rows_data):
             row = tbl.rows[r_idx + 1]
             prevent_row_split(row)
-            for c_idx, val in enumerate(r_vals):
-                cell = row.cells[c_idx]
-                
-                if r_vals[0] == "Média" and c_idx in ([0] + list(range(2, num_cols-1))):
-                    set_cell_background(cell, "A6A6A6")
-                    
-                p = cell.paragraphs[0]
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                r = p.add_run(val)
-                r.font.name = 'Arial'
-                r.font.size = Pt(8.5 if incluir_rpm else 9.0)
-                if r_vals[0] == "Média":
-                    r.bold = True
+            is_linha_6_media = (r_vals[0] == "Média")  # Linha 6 da tabela é a Média
+            
+            # Coluna 0: Tempo de teste
+            cell_tempo = row.cells[0]
+            cell_tempo.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+            p_tempo = cell_tempo.paragraphs[0]
+            p_tempo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            r_t = p_tempo.add_run(r_vals[0])
+            r_t.font.name = 'Arial'
+            r_t.font.size = Pt(8.5 if incluir_rpm else 9.0)
+            if is_linha_6_media:
+                r_t.bold = True
+                set_cell_background(cell_tempo, "A6A6A6")  # Cor cinza na Linha 6
+
+            # Colunas de valores numéricos
+            for num_col_i, val_str in enumerate(r_vals[1:]):
+                col_target = num_col_i + 2  # Pula coluna de Partida a frio (índice 1)
+                cell_val = row.cells[col_target]
+                cell_val.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+                p_v = cell_val.paragraphs[0]
+                p_v.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                r_v = p_v.add_run(val_str)
+                r_v.font.name = 'Arial'
+                r_v.font.size = Pt(8.5 if incluir_rpm else 9.0)
+                if is_linha_6_media:
+                    r_v.bold = True
+                    set_cell_background(cell_val, "A6A6A6")  # Cor cinza na Linha 6
+
+        # MESCLAGEM DA COLUNA "Partida a frio" (Linhas 30s a 5min)
+        cell_pf_top = tbl.rows[1].cells[1]
+        cell_pf_bottom = tbl.rows[4].cells[1]
+        cell_pf_merged = cell_pf_top.merge(cell_pf_bottom)
+        cell_pf_merged.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        
+        p_pf = cell_pf_merged.paragraphs[0]
+        p_pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        text_pf = "SIM" if am["partida_status"] == "Sim" else "NÃO"
+        r_pf = p_pf.add_run(text_pf)
+        r_pf.font.name = 'Arial'
+        r_pf.font.size = Pt(9.0)
+
+        # Célula da Linha 6 (Média) na coluna de Partida a frio (cinza A6A6A6)
+        set_cell_background(tbl.rows[5].cells[1], "A6A6A6")
+
+        # MESCLAGEM DA COLUNA "Amostra" (Linhas 30s a Média)
+        last_col_idx = num_cols - 1
+        cell_am_top = tbl.rows[1].cells[last_col_idx]
+        cell_am_bottom = tbl.rows[5].cells[last_col_idx]
+        cell_am_merged = cell_am_top.merge(cell_am_bottom)
+        cell_am_merged.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        
+        p_am_tbl = cell_am_merged.paragraphs[0]
+        p_am_tbl.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_am_tbl = p_am_tbl.add_run(am["sample_id"])
+        r_am_tbl.font.name = 'Arial'
+        r_am_tbl.bold = True
+        r_am_tbl.font.size = Pt(9.0)
 
         doc.add_paragraph()
 
+    # SEÇÃO 2: DURABILIDADE COM TABELA DE FOTOS E FALHAS
     p_sec2 = doc.add_paragraph().add_run("2- Durabilidade conforme norma KN 082.023 cap. 4.7.1")
     p_sec2.font.name = 'Arial'
     p_sec2.bold = True
 
     for am in amostras_dados:
         p_am = doc.add_paragraph()
-        r_am = p_am.add_run(f"• {am['sample_id']} ({am['voltagem_conexao']})")
+        r_am = p_am.add_run(f"• {am['sample_id']} ({am['voltagem_conexao']}) - Após {am['horas']}:")
         r_am.font.name = 'Arial'
         r_am.bold = True
         
-        if am["fotos"]:
-            cols_count = min(len(am["fotos"]), 3)
-            tbl_ft = doc.add_table(rows=1, cols=cols_count)
-            tbl_ft.alignment = WD_TABLE_ALIGNMENT.CENTER
+        fotos_list = am["fotos"] if am["fotos"] else []
+        num_fotos = len(fotos_list)
+        cols_count = max(num_fotos, 1)
+        
+        tbl_am_fail = doc.add_table(rows=2, cols=cols_count)
+        tbl_am_fail.style = 'Table Grid'
+        tbl_am_fail.alignment = WD_TABLE_ALIGNMENT.CENTER
+        
+        row_fotos = tbl_am_fail.rows[0]
+        prevent_row_split(row_fotos)
+        
+        if num_fotos > 0:
+            for f_i, f_file in enumerate(fotos_list):
+                cell_img = row_fotos.cells[f_i]
+                p_img = cell_img.paragraphs[0]
+                p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                img_stream = io.BytesIO(f_file.read())
+                w_img = Inches(1.8) if cols_count <= 3 else Inches(1.3)
+                p_img.add_run().add_picture(img_stream, width=w_img)
+        else:
+            p_empty = row_fotos.cells[0].paragraphs[0]
+            r_no_img = p_empty.add_run("[Sem imagens anexadas]")
+            r_no_img.font.name = 'Arial'
+            r_no_img.font.size = Pt(9)
+            r_no_img.font.italic = True
+        
+        row_falhas = tbl_am_fail.rows[1]
+        prevent_row_split(row_falhas)
+        
+        cell_falhas = row_falhas.cells[0]
+        if cols_count > 1:
+            cell_falhas = cell_falhas.merge(row_falhas.cells[cols_count - 1])
             
-            for f_i, f_file in enumerate(am["fotos"]):
-                if f_i < 3:
-                    cell = tbl_ft.rows[0].cells[f_i]
-                    p_img = cell.paragraphs[0]
-                    p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    img_stream = io.BytesIO(f_file.read())
-                    p_img.add_run().add_picture(img_stream, width=Inches(1.8))
-
-        p_fail_lbl = doc.add_paragraph(f"Após {am['horas']} foram identificadas as falhas / defeitos:")
-        for r in p_fail_lbl.runs:
-            r.font.name = 'Arial'
-            
-        p_fail_txt = doc.add_paragraph(am["defeitos"])
-        for r in p_fail_txt.runs:
-            r.font.name = 'Arial'
+        p_f_lbl = cell_falhas.paragraphs[0]
+        p_f_lbl.paragraph_format.space_before = Pt(4)
+        p_f_lbl.paragraph_format.space_after = Pt(2)
+        r_f_hdr = p_f_lbl.add_run("Falhas / Defeitos apresentados:")
+        r_f_hdr.font.name = 'Arial'
+        r_f_hdr.font.size = Pt(9.5)
+        r_f_hdr.bold = True
+        
+        p_f_txt = cell_falhas.add_paragraph()
+        p_f_txt.paragraph_format.space_before = Pt(0)
+        p_f_txt.paragraph_format.space_after = Pt(4)
+        r_f_body = p_f_txt.add_run(am["defeitos"] if am["defeitos"] else "Nenhum defeito relatado.")
+        r_f_body.font.name = 'Arial'
+        r_f_body.font.size = Pt(9.5)
             
         doc.add_paragraph()
 
+    # RESUMO DE DURABILIDADE
     p_res_lbl = doc.add_paragraph().add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras")
     p_res_lbl.font.name = 'Arial'
     p_res_lbl.bold = True
     
     tbl_res = doc.add_table(rows=len(amostras_dados)+1, cols=4)
     tbl_res.style = 'Table Grid'
+    tbl_res.alignment = WD_TABLE_ALIGNMENT.CENTER
     
     headers_res = ["Amostra", "Tempo de teste", "Vida útil esperada", "Falhas apresentadas"]
     for c_i, h_txt in enumerate(headers_res):
@@ -535,7 +610,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_e = row.cells[2].paragraphs[0].add_run("60 h")
         r_e.font.name = 'Arial'
         
-        r_f = row.cells[3].paragraphs[0].add_run("Identificadas no ensaio")
+        r_f = row.cells[3].paragraphs[0].add_run("Identificadas no ensaio" if am["defeitos"] else "Nenhuma falha")
         r_f.font.name = 'Arial'
 
     buffer = io.BytesIO()

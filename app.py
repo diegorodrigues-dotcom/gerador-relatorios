@@ -63,7 +63,6 @@ def format_horas(val_texto):
     if not val_clean.lower().endswith("horas") and not val_clean.lower().endswith("h"):
         return f"{val_clean} horas"
     if val_clean.lower().endswith("h"):
-        # Se digitou '116h', converte para '116 horas'
         val_num = val_clean[:-1].strip()
         if val_num.isdigit():
             return f"{val_num} horas"
@@ -122,7 +121,7 @@ for idx in range(int(num_amostras)):
     col_a, col_b, col_c = st.columns(3)
     with col_a:
         sample_id = st.text_input("Modelo", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
-        voltagem_conexao = st.text_input("Tensão", value="", placeholder="127V / 220V", key=f"volt_{idx}")
+        voltagem_conexao = st.text_input("Tensão (V)", value="", placeholder="127V / 220V", key=f"volt_{idx}")
     with col_b:
         col_p1, col_p2 = st.columns([1, 1])
         with col_p1:

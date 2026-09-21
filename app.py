@@ -53,6 +53,22 @@ def safe_float(val):
     except ValueError:
         return 0.0
 
+def format_horas(val_texto):
+    """ Adiciona automaticamente o sufixo 'horas' caso o usuário digite apenas números """
+    if not val_texto:
+        return ""
+    val_clean = str(val_texto).strip()
+    if val_clean.isdigit():
+        return f"{val_clean} horas"
+    if not val_clean.lower().endswith("horas") and not val_clean.lower().endswith("h"):
+        return f"{val_clean} horas"
+    if val_clean.lower().endswith("h"):
+        # Se digitou '116h', converte para '116 horas'
+        val_num = val_clean[:-1].strip()
+        if val_num.isdigit():
+            return f"{val_num} horas"
+    return val_clean
+
 # Verifica se a logo está presente na pasta
 logo_path = os.path.join(os.path.dirname(__file__), "logo_karcher.png")
 if not os.path.exists(logo_path):
@@ -80,7 +96,10 @@ with c2:
 with c3:
     item_testado = st.text_input("Item Testado", value="", placeholder="O que você está testando?...")
     data_ensaio = st.text_input("Data do Teste", value="", placeholder="Ex: 01/01/2026")
-    vida_util_geral = st.text_input("Tempo de vida útil", value="", placeholder="Ex: 600 horas")
+    vida_util_input = st.text_input("Tempo de vida útil", value="", placeholder="Ex: 600")
+
+# Formatação automática do tempo de vida útil
+vida_util_geral = format_horas(vida_util_input)
 
 st.markdown("---")
 
@@ -112,7 +131,8 @@ for idx in range(int(num_amostras)):
             tensao_partida = st.text_input("Tensão de Partida", value="", placeholder="Ex: 94V", key=f"p_tensao_{idx}")
         
         partida_status = partiu_frio
-        horas_ensaio = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116 h", key=f"h_{idx}")
+        horas_input = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116", key=f"h_{idx}")
+        horas_ensaio = format_horas(horas_input)
     with col_c:
         defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
 
@@ -307,7 +327,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     r_title.bold = True
     r_title.font.size = Pt(32)
 
-    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
+    # TABELA UNIFICADA DE INFORMAÇÕES GERAIS (INCLUINDO TEMPO DE VIDA ÚTIL)
     meta_info = [
         ("ST", codigo_st),
         ("Teste realizado por", tecnico),
@@ -438,7 +458,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 ("Média", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]))
             ]
         
-        # Preenchimento da LINHA 1 (Cabeçalhos com fonte 9.5pt ampliada e espaçamento de 4pt)
+        # Preenchimento da LINHA 1 (Cabeçalhos em NEGRITO)
         hdr_row = tbl.rows[0]
         prevent_row_split(hdr_row)
         for col_i, h_text in enumerate(headers):
@@ -455,7 +475,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r.font.size = Pt(9.0 if incluir_rpm else 9.5)
             r.font.color.rgb = RGBColor(0, 0, 0)
 
-        # Preenchimento das LINHAS 2 a 6 (dados com fonte 10pt e espaçamento de 4pt)
+        # Preenchimento das LINHAS 2 a 6 (dados)
         for r_idx, r_vals in enumerate(rows_data):
             row = tbl.rows[r_idx + 1]
             prevent_row_split(row)

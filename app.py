@@ -13,7 +13,7 @@ import math
 st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
 
 st.title("⚙️ Gerador de Relatórios Técnicos - Padrão Kärcher")
-st.subheader("Lavadoras de Alta Pressão e Equipamentos Motorizados")
+st.subheader("Lavadora de Alta Pressão")
 
 st.markdown("---")
 

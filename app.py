@@ -758,10 +758,12 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_e.font.name = 'Arial'
         r_e.font.size = Pt(10.0)
         
+        # EXIBIÇÃO EXPLICITA DAS FALHAS CADASTRADAS
         p_f = row.cells[3].paragraphs[0]
         p_f.paragraph_format.space_before = Pt(4)
         p_f.paragraph_format.space_after = Pt(4)
-        r_f = p_f.add_run("Identificadas no ensaio" if am["defeitos"] else "Nenhuma falha")
+        texto_falhas_resumo = am["defeitos"].strip() if am["defeitos"] and am["defeitos"].strip() else "Nenhuma falha relatada."
+        r_f = p_f.add_run(texto_falhas_resumo)
         r_f.font.name = 'Arial'
         r_f.font.size = Pt(10.0)
 

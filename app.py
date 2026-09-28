@@ -172,10 +172,10 @@ for idx in range(int(num_amostras)):
     
     with m1:
         st.caption("1. Tensão (V)")
-        v30 = st.text_input("30s (V)", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
-        v1m = st.text_input("1min (V)", value="", placeholder="Ex: 127.5", key=f"v1m_{idx}")
-        v3m = st.text_input("3min (V)", value="", placeholder="Ex: 128.0", key=f"v3m_{idx}")
-        v5m = st.text_input("5min (V)", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
+        v30 = st.text_input("30s", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
+        v1m = st.text_input("1min", value="", placeholder="Ex: 127.5", key=f"v1m_{idx}")
+        v3m = st.text_input("3min", value="", placeholder="Ex: 128.0", key=f"v3m_{idx}")
+        v5m = st.text_input("5min", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
 
     with m2:
         st.caption("2. Corrente (A)")

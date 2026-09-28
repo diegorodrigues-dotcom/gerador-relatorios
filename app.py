@@ -8,6 +8,7 @@ from docx.oxml.ns import qn, nsdecls
 import io
 import os
 import math
+import statistics
 
 # Configuração da página Web
 st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
@@ -55,13 +56,21 @@ def add_field(paragraph, field_type):
     r.append(fldChar3)
 
 def safe_float(val):
-    """Converte texto digitado para float de forma segura para cálculo da média"""
+    """Converte texto digitado para float de forma segura para cálculos"""
     try:
         if not val:
-            return 0.0
+            return None
         return float(str(val).replace(',', '.'))
     except ValueError:
-        return 0.0
+        return None
+
+def safe_stdev(lista_floats, decimais=2):
+    """Calcula o desvio padrão de forma segura"""
+    validos = [v for v in lista_floats if v is not None]
+    if len(validos) > 1:
+        sd = statistics.stdev(validos)
+        return round(sd, decimais)
+    return ""
 
 def fmt_br(val):
     """Converte o float/string para o formato com vírgula (ex: 220,8)"""
@@ -205,7 +214,7 @@ for idx in range(int(num_amostras)):
         vz3m = st.text_input("3min", value="", placeholder="Ex: 296", key=f"vz3m_{idx}")
         vz5m = st.text_input("5min", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
 
-    rpm30, rpm1m, rpm3m, rpm5m, mrpm = "", "", "", "", ""
+    rpm30, rpm1m, rpm3m, rpm5m, mrpm, std_rpm = "", "", "", "", "", ""
     if incluir_rpm:
         with m6:
             st.caption("6. RPM")
@@ -214,22 +223,39 @@ for idx in range(int(num_amostras)):
             rpm3m = st.text_input("3min", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
             rpm5m = st.text_input("5min", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
 
+    # Listas de valores convertidos para float
     num_v = [safe_float(v30), safe_float(v1m), safe_float(v3m), safe_float(v5m)]
     num_i = [safe_float(i30), safe_float(i1m), safe_float(i3m), safe_float(i5m)]
     num_p = [safe_float(p30), safe_float(p1m), safe_float(p3m), safe_float(p5m)]
     num_pr = [safe_float(pr30), safe_float(pr1m), safe_float(pr3m), safe_float(pr5m)]
     num_vz = [safe_float(vz30), safe_float(vz1m), safe_float(vz3m), safe_float(vz5m)]
 
-    mv = round(sum(num_v)/4, 1) if any(num_v) else ""
-    mi = round(sum(num_i)/4, 2) if any(num_i) else ""
-    mp = round(sum(num_p)/4, 2) if any(num_p) else ""
-    mpr = round(sum(num_pr)/4, 1) if any(num_pr) else ""
-    mvz = round(sum(num_vz)/4, 0) if any(num_vz) else ""
+    # Cálculo da Média
+    val_v_validos = [v for v in num_v if v is not None]
+    val_i_validos = [v for v in num_i if v is not None]
+    val_p_validos = [v for v in num_p if v is not None]
+    val_pr_validos = [v for v in num_pr if v is not None]
+    val_vz_validos = [v for v in num_vz if v is not None]
+
+    mv = round(sum(val_v_validos)/len(val_v_validos), 1) if val_v_validos else ""
+    mi = round(sum(val_i_validos)/len(val_i_validos), 2) if val_i_validos else ""
+    mp = round(sum(val_p_validos)/len(val_p_validos), 2) if val_p_validos else ""
+    mpr = round(sum(val_pr_validos)/len(val_pr_validos), 1) if val_pr_validos else ""
+    mvz = round(sum(val_vz_validos)/len(val_vz_validos), 0) if val_vz_validos else ""
+
+    # Cálculo do Desvio Padrão
+    std_v = safe_stdev(num_v, 2)
+    std_i = safe_stdev(num_i, 2)
+    std_p = safe_stdev(num_p, 2)
+    std_pr = safe_stdev(num_pr, 2)
+    std_vz = safe_stdev(num_vz, 2)
 
     if incluir_rpm:
         num_rpm = [safe_float(rpm30), safe_float(rpm1m), safe_float(rpm3m), safe_float(rpm5m)]
-        calc_mrpm = round(sum(num_rpm)/4, 0) if any(num_rpm) else ""
+        val_rpm_validos = [v for v in num_rpm if v is not None]
+        calc_mrpm = round(sum(val_rpm_validos)/len(val_rpm_validos), 0) if val_rpm_validos else ""
         mrpm = str(int(calc_mrpm)) if calc_mrpm != "" else ""
+        std_rpm = safe_stdev(num_rpm, 2)
 
     fotos_uploaded = st.file_uploader(f"Anexar Imagens para {sample_id if sample_id else f'Amostra {idx+1}'}", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key=f"foto_{idx}")
 
@@ -247,12 +273,12 @@ for idx in range(int(num_amostras)):
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
         "fotos": fotos_bytes,
-        "v30": fmt_br(v30), "v1m": fmt_br(v1m), "v3m": fmt_br(v3m), "v5m": fmt_br(v5m), "mv": fmt_br(mv),
-        "i30": fmt_br(i30), "i1m": fmt_br(i1m), "i3m": fmt_br(i3m), "i5m": fmt_br(i5m), "mi": fmt_br(mi),
-        "p30": fmt_br(p30), "p1m": fmt_br(p1m), "p3m": fmt_br(p3m), "p5m": fmt_br(p5m), "mp": fmt_br(mp),
-        "pr30": fmt_br(pr30), "pr1m": fmt_br(pr1m), "pr3m": fmt_br(pr3m), "pr5m": fmt_br(pr5m), "mpr": fmt_br(mpr),
-        "vz30": fmt_br(vz30), "vz1m": fmt_br(vz1m), "vz3m": fmt_br(vz3m), "vz5m": fmt_br(vz5m), "mvz": fmt_br(int(mvz) if mvz != "" else ""),
-        "rpm30": fmt_br(rpm30), "rpm1m": fmt_br(rpm1m), "rpm3m": fmt_br(rpm3m), "rpm5m": fmt_br(rpm5m), "mrpm": fmt_br(mrpm)
+        "v30": fmt_br(v30), "v1m": fmt_br(v1m), "v3m": fmt_br(v3m), "v5m": fmt_br(v5m), "mv": fmt_br(mv), "std_v": fmt_br(std_v),
+        "i30": fmt_br(i30), "i1m": fmt_br(i1m), "i3m": fmt_br(i3m), "i5m": fmt_br(i5m), "mi": fmt_br(mi), "std_i": fmt_br(std_i),
+        "p30": fmt_br(p30), "p1m": fmt_br(p1m), "p3m": fmt_br(p3m), "p5m": fmt_br(p5m), "mp": fmt_br(mp), "std_p": fmt_br(std_p),
+        "pr30": fmt_br(pr30), "pr1m": fmt_br(pr1m), "pr3m": fmt_br(pr3m), "pr5m": fmt_br(pr5m), "mpr": fmt_br(mpr), "std_pr": fmt_br(std_pr),
+        "vz30": fmt_br(vz30), "vz1m": fmt_br(vz1m), "vz3m": fmt_br(vz3m), "vz5m": fmt_br(vz5m), "mvz": fmt_br(int(mvz) if mvz != "" else ""), "std_vz": fmt_br(std_vz),
+        "rpm30": fmt_br(rpm30), "rpm1m": fmt_br(rpm1m), "rpm3m": fmt_br(rpm3m), "rpm5m": fmt_br(rpm5m), "mrpm": fmt_br(mrpm), "std_rpm": fmt_br(std_rpm)
     })
     st.markdown("---")
 
@@ -447,7 +473,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
 
     for am in amostras_dados:
         num_cols = 9 if incluir_rpm else 8
-        tbl = doc.add_table(rows=6, cols=num_cols)
+        tbl = doc.add_table(rows=7, cols=num_cols)  # 7 Linhas: Cabeçalho, 4 Tempos, Desvio Padrão e Média
         tbl.style = 'Table Grid'
         tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
         tbl.autofit = False
@@ -471,6 +497,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 ("1 min", str(am["v1m"]), str(am["i1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"]), str(am["rpm1m"])),
                 ("3 min", str(am["v3m"]), str(am["i3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"]), str(am["rpm3m"])),
                 ("5 min", str(am["v5m"]), str(am["i5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"]), str(am["rpm5m"])),
+                ("Desvio Padrão", str(am["std_v"]), str(am["std_i"]), str(am["std_p"]), str(am["std_pr"]), str(am["std_vz"]), str(am["std_rpm"])),
                 ("Média", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]), str(am["mrpm"]))
             ]
         else:
@@ -489,6 +516,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 ("1 min", str(am["v1m"]), str(am["i1m"]), str(am["p1m"]), str(am["pr1m"]), str(am["vz1m"])),
                 ("3 min", str(am["v3m"]), str(am["i3m"]), str(am["p3m"]), str(am["pr3m"]), str(am["vz3m"])),
                 ("5 min", str(am["v5m"]), str(am["i5m"]), str(am["p5m"]), str(am["pr5m"]), str(am["vz5m"])),
+                ("Desvio Padrão", str(am["std_v"]), str(am["std_i"]), str(am["std_p"]), str(am["std_pr"]), str(am["std_vz"])),
                 ("Média", str(am["mv"]), str(am["mi"]), str(am["mp"]), str(am["mpr"]), str(am["mvz"]))
             ]
         
@@ -509,13 +537,13 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r.font.size = Pt(9.0 if incluir_rpm else 9.5)
             r.font.color.rgb = RGBColor(0, 0, 0)
 
-        # Preenchimento das LINHAS 2 a 6 (dados)
+        # Preenchimento das LINHAS 2 a 7 (dados, Desvio Padrão e Média)
         for r_idx, r_vals in enumerate(rows_data):
             row = tbl.rows[r_idx + 1]
             prevent_row_split(row)
-            is_linha_6_media = (r_vals[0] == "Média")
+            is_linha_cinza = r_vals[0] in ["Média", "Desvio Padrão"]
             
-            # Coluna 0: Tempo de teste
+            # Coluna 0: Tempo de teste / Desvio Padrão / Média
             cell_tempo = row.cells[0]
             cell_tempo.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
             p_tempo = cell_tempo.paragraphs[0]
@@ -524,8 +552,8 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             p_tempo.paragraph_format.space_after = Pt(4)
             r_t = p_tempo.add_run(r_vals[0])
             r_t.font.name = 'Arial'
-            r_t.font.size = Pt(9.5 if incluir_rpm else 10.0)
-            if is_linha_6_media:
+            r_t.font.size = Pt(8.5 if (is_linha_cinza and incluir_rpm) else (9.5 if incluir_rpm else 10.0))
+            if is_linha_cinza:
                 r_t.bold = True
                 set_cell_background(cell_tempo, "A6A6A6")
 
@@ -541,7 +569,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 r_v = p_v.add_run(val_str)
                 r_v.font.name = 'Arial'
                 r_v.font.size = Pt(9.5 if incluir_rpm else 10.0)
-                if is_linha_6_media:
+                if is_linha_cinza:
                     r_v.bold = True
                     set_cell_background(cell_val, "A6A6A6")
 
@@ -561,13 +589,14 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_pf.bold = True
         r_pf.font.size = Pt(10.0)
 
-        # Célula da Linha 6 (Média) na coluna de Partida a frio (cinza A6A6A6)
+        # Células de Desvio Padrão e Média na coluna de Partida a frio (fundo cinza A6A6A6)
         set_cell_background(tbl.rows[5].cells[1], "A6A6A6")
+        set_cell_background(tbl.rows[6].cells[1], "A6A6A6")
 
         # MESCLAGEM DA COLUNA "Amostra" (Linhas 30s a Média)
         last_col_idx = num_cols - 1
         cell_am_top = tbl.rows[1].cells[last_col_idx]
-        cell_am_bottom = tbl.rows[5].cells[last_col_idx]
+        cell_am_bottom = tbl.rows[6].cells[last_col_idx]
         cell_am_merged = cell_am_top.merge(cell_am_bottom)
         cell_am_merged.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
         

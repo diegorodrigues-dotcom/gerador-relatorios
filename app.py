@@ -461,7 +461,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 "Tensão (V) -\n60 Hz", 
                 "Corrente (A)", 
                 "Potência\nabsorvida\n(kW)", 
-                "Pressão com\nbico", 
+                "Pressão (bar)", 
                 "Vazão (l/h)", 
                 "RPM (rpm)", 
                 "Amostra"
@@ -480,7 +480,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
                 "Tensão (V) -\n60 Hz", 
                 "Corrente (A)", 
                 "Potência\nabsorvida\n(kW)", 
-                "Pressão com\nbico", 
+                "Pressão (bar)", 
                 "Vazão (l/h)", 
                 "Amostra"
             ]

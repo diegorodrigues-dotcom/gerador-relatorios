@@ -179,40 +179,40 @@ for idx in range(int(num_amostras)):
 
     with m2:
         st.caption("2. Corrente (A)")
-        i30 = st.text_input("30s (A)", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
-        i1m = st.text_input("1min (A)", value="", placeholder="Ex: 12.64", key=f"i1m_{idx}")
-        i3m = st.text_input("3min (A)", value="", placeholder="Ex: 12.60", key=f"i3m_{idx}")
-        i5m = st.text_input("5min (A)", value="", placeholder="Ex: 12.38", key=f"i5m_{idx}")
+        i30 = st.text_input("30s", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
+        i1m = st.text_input("1min", value="", placeholder="Ex: 12.64", key=f"i1m_{idx}")
+        i3m = st.text_input("3min", value="", placeholder="Ex: 12.60", key=f"i3m_{idx}")
+        i5m = st.text_input("5min", value="", placeholder="Ex: 12.38", key=f"i5m_{idx}")
 
     with m3:
         st.caption("3. Potência (kW)")
-        p30 = st.text_input("30s (kW)", value="", placeholder="Ex: 1.53", key=f"p30_{idx}")
-        p1m = st.text_input("1min (kW)", value="", placeholder="Ex: 1.54", key=f"p1m_{idx}")
-        p3m = st.text_input("3min (kW)", value="", placeholder="Ex: 1.55", key=f"p3m_{idx}")
-        p5m = st.text_input("5min (kW)", value="", placeholder="Ex: 1.50", key=f"p5m_{idx}")
+        p30 = st.text_input("30s", value="", placeholder="Ex: 1.53", key=f"p30_{idx}")
+        p1m = st.text_input("1min", value="", placeholder="Ex: 1.54", key=f"p1m_{idx}")
+        p3m = st.text_input("3min", value="", placeholder="Ex: 1.55", key=f"p3m_{idx}")
+        p5m = st.text_input("5min", value="", placeholder="Ex: 1.50", key=f"p5m_{idx}")
 
     with m4:
         st.caption("4. Pressão bico (bar)")
-        pr30 = st.text_input("30s (Bar)", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
-        pr1m = st.text_input("1min (Bar)", value="", placeholder="Ex: 93.2", key=f"pr1m_{idx}")
-        pr3m = st.text_input("3min (Bar)", value="", placeholder="Ex: 94.0", key=f"pr3m_{idx}")
-        pr5m = st.text_input("5min (Bar)", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
+        pr30 = st.text_input("30s", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
+        pr1m = st.text_input("1min", value="", placeholder="Ex: 93.2", key=f"pr1m_{idx}")
+        pr3m = st.text_input("3min", value="", placeholder="Ex: 94.0", key=f"pr3m_{idx}")
+        pr5m = st.text_input("5min", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
 
     with m5:
         st.caption("5. Vazão (l/h)")
-        vz30 = st.text_input("30s (l/h)", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
-        vz1m = st.text_input("1min (l/h)", value="", placeholder="Ex: 295", key=f"vz1m_{idx}")
-        vz3m = st.text_input("3min (l/h)", value="", placeholder="Ex: 296", key=f"vz3m_{idx}")
-        vz5m = st.text_input("5min (l/h)", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
+        vz30 = st.text_input("30s", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
+        vz1m = st.text_input("1min", value="", placeholder="Ex: 295", key=f"vz1m_{idx}")
+        vz3m = st.text_input("3min", value="", placeholder="Ex: 296", key=f"vz3m_{idx}")
+        vz5m = st.text_input("5min", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
 
     rpm30, rpm1m, rpm3m, rpm5m, mrpm = "", "", "", "", ""
     if incluir_rpm:
         with m6:
             st.caption("6. RPM")
-            rpm30 = st.text_input("30s (rpm)", value="", placeholder="Ex: 3450", key=f"rpm30_{idx}")
-            rpm1m = st.text_input("1min (rpm)", value="", placeholder="Ex: 3435", key=f"rpm1m_{idx}")
-            rpm3m = st.text_input("3min (rpm)", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
-            rpm5m = st.text_input("5min (rpm)", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
+            rpm30 = st.text_input("30s", value="", placeholder="Ex: 3450", key=f"rpm30_{idx}")
+            rpm1m = st.text_input("1min", value="", placeholder="Ex: 3435", key=f"rpm1m_{idx}")
+            rpm3m = st.text_input("3min", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
+            rpm5m = st.text_input("5min", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
 
     num_v = [safe_float(v30), safe_float(v1m), safe_float(v3m), safe_float(v5m)]
     num_i = [safe_float(i30), safe_float(i1m), safe_float(i3m), safe_float(i5m)]

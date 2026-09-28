@@ -393,7 +393,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         ("Teste realizado por", tecnico),
         ("Data", data_ensaio),
         ("Item testado", item_testado),
-        ("Quantidade", str(num_amostras)),
+        ("Quantidade de Amostras", str(num_amostras)),
         ("Tempo de vida útil", vida_util_geral),
         ("Objetivo do teste", objetivo),
         ("Critério de aprovação", normas)

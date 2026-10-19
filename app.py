@@ -63,9 +63,11 @@ def clean_excel_val(val_str):
     val_clean = str(val_str).strip()
     if val_clean in ["-", "--", "#DIV/0!", "N/A", "n/a"]:
         return ""
-    # Remove textos de unidades comuns mantendo números, vírgulas e pontos
-    val_clean = re.sub(r'[^\d.,]', '', val_clean).strip()
-    return val_clean
+    # Extrai padrão numérico com vírgula ou ponto
+    match = re.search(r'[\d]+(?:[.,][\d]+)?', val_clean)
+    if match:
+        return match.group(0)
+    return ""
 
 def safe_float(val):
     """Converte texto digitado para float de forma segura para cálculos"""
@@ -126,36 +128,40 @@ def parse_pasted_excel(pasted_text, tem_rpm=False):
     lines = [line.strip() for line in pasted_text.strip().split('\n') if line.strip()]
     rows_data = []
     
-    # Filtra as linhas buscando marcadores de tempo
     for line in lines:
         cols = [c.strip() for c in line.split('\t')]
         if len(cols) == 1 and ';' in cols[0]:
             cols = [c.strip() for c in line.split(';')]
+        elif len(cols) == 1:
+            cols = [c.strip() for c in line.split() if c.strip()]
         
-        # Verifica se a linha trata-se de um dos tempos (30s, 1 min, 3 min, 5 min)
-        primeira_col = cols[0].lower().replace(" ", "")
-        if any(t in primeira_col for t in ["30s", "1min", "3min", "5min"]):
-            # Extrai apenas valores numéricos da linha (descartando o texto de tempo e textos de partida a frio)
+        # Procura linhas que contenham indicação de tempo (30s, 1 min, 3 min, 5 min)
+        line_str = " ".join(cols).lower()
+        if any(t in line_str for t in ["30s", "1 min", "1min", "3 min", "3min", "5 min", "5min"]):
             valores_num = []
-            for col_val in cols[1:]:
-                c_clean = clean_excel_val(col_val)
-                # Aceita valores numéricos válidos
-                if c_clean or col_val in ["-", "--"]:
-                    valores_num.append(c_clean)
-            if valores_num:
+            for item in cols:
+                cleaned = clean_excel_val(item)
+                # Adiciona se for um número válido encontrado no item
+                if cleaned != "":
+                    valores_num.append(cleaned)
+                elif item in ["-", "--"]:
+                    valores_num.append("")
+            if len(valores_num) >= 5:
                 rows_data.append(valores_num)
     
-    # Se encontrou exatamente as 4 linhas de medição
     if len(rows_data) >= 4:
         return rows_data[:4]
     
-    # Fallback: Se colou apenas a matriz numérica de 4 linhas
+    # Fallback: le diretamente qualquer linha com pelo menos 5 numeros
     grid_direct = []
     for line in lines:
         cols = [c.strip() for c in line.split('\t')]
-        if len(cols) == 1 and ';' in cols[0]:
-            cols = [c.strip() for c in line.split(';')]
-        grid_direct.append([clean_excel_val(c) for c in cols])
+        if len(cols) == 1:
+            cols = [c.strip() for c in line.split() if c.strip()]
+        vals = [clean_excel_val(c) for c in cols if clean_excel_val(c) != ""]
+        if len(vals) >= 5:
+            grid_direct.append(vals)
+            
     if len(grid_direct) >= 4:
         return grid_direct[:4]
         
@@ -247,7 +253,7 @@ for idx in range(int(num_amostras)):
     
     # ÁREA DE COPIAR E COLAR DO EXCEL
     with st.expander("📋 Colar dados direto do Excel (Opcional - Preenchimento Rápido)"):
-        st.info("Copie do Excel a tabela de medições da amostra e cole abaixo:")
+        st.info("Copie do Excel a tabela de medições da amostra, cole abaixo e pressione Ctrl + Enter:")
         excel_paste = st.text_area("Cole aqui as células copiadas do Excel:", key=f"paste_{idx}", height=100)
     
     pasted_grid = parse_pasted_excel(excel_paste, tem_rpm=incluir_rpm)
@@ -922,4 +928,40 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r_a.font.size = Pt(10.0)
             
             p_qtd = row.cells[2].paragraphs[0]
-            p_qtd.alignment
+            p_qtd.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_qtd.paragraph_format.space_before = Pt(4)
+            p_qtd.paragraph_format.space_after = Pt(4)
+            r_q = p_qtd.add_run(str(info["qtd"]))
+            r_q.font.name = 'Arial'
+            r_q.font.size = Pt(10.0)
+            
+            p_imp = row.cells[3].paragraphs[0]
+            p_imp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_imp.paragraph_format.space_before = Pt(4)
+            p_imp.paragraph_format.space_after = Pt(4)
+            r_i = p_imp.add_run(info["impacto"])
+            r_i.font.name = 'Arial'
+            r_i.font.size = Pt(10.0)
+            
+        prevent_table_split(tbl_mat)
+    else:
+        p_no_fail = doc.add_paragraph()
+        p_no_fail.paragraph_format.space_before = Pt(2)
+        p_no_fail.paragraph_format.space_after = Pt(6)
+        r_nf = p_no_fail.add_run("Nenhuma categoria de falha identificada durante os testes das amostras.")
+        r_nf.font.name = 'Arial'
+        r_nf.font.size = Pt(10.0)
+        r_nf.font.italic = True
+
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+
+    st.success("✅ Relatório Word (.docx) gerado com sucesso!")
+    st.download_button(
+        label="📥 Baixar Documento Word (.docx)",
+        data=buffer,
+        file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Relatorio'}.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        use_container_width=True
+    )

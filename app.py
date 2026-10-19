@@ -119,19 +119,47 @@ def format_voltagem(val_texto):
     return val_clean.upper()
 
 def parse_pasted_excel(pasted_text, tem_rpm=False):
-    """Processa o texto colado do Excel e extrai a matriz 4x5 ou 4x6"""
+    """Processa o texto colado do Excel e extrai apenas as 4 linhas de tempo e suas medições"""
     if not pasted_text or not pasted_text.strip():
         return None
+    
     lines = [line.strip() for line in pasted_text.strip().split('\n') if line.strip()]
-    grid = []
+    rows_data = []
+    
+    # Filtra as linhas buscando marcadores de tempo
     for line in lines:
         cols = [c.strip() for c in line.split('\t')]
         if len(cols) == 1 and ';' in cols[0]:
             cols = [c.strip() for c in line.split(';')]
-        grid.append(cols)
-    if len(grid) < 4:
-        return None
-    return grid
+        
+        # Verifica se a linha trata-se de um dos tempos (30s, 1 min, 3 min, 5 min)
+        primeira_col = cols[0].lower().replace(" ", "")
+        if any(t in primeira_col for t in ["30s", "1min", "3min", "5min"]):
+            # Extrai apenas valores numéricos da linha (descartando o texto de tempo e textos de partida a frio)
+            valores_num = []
+            for col_val in cols[1:]:
+                c_clean = clean_excel_val(col_val)
+                # Aceita valores numéricos válidos
+                if c_clean or col_val in ["-", "--"]:
+                    valores_num.append(c_clean)
+            if valores_num:
+                rows_data.append(valores_num)
+    
+    # Se encontrou exatamente as 4 linhas de medição
+    if len(rows_data) >= 4:
+        return rows_data[:4]
+    
+    # Fallback: Se colou apenas a matriz numérica de 4 linhas
+    grid_direct = []
+    for line in lines:
+        cols = [c.strip() for c in line.split('\t')]
+        if len(cols) == 1 and ';' in cols[0]:
+            cols = [c.strip() for c in line.split(';')]
+        grid_direct.append([clean_excel_val(c) for c in cols])
+    if len(grid_direct) >= 4:
+        return grid_direct[:4]
+        
+    return None
 
 # Verifica se a logo está presente na pasta
 logo_path = os.path.join(os.path.dirname(__file__), "logo_karcher.png")
@@ -219,14 +247,14 @@ for idx in range(int(num_amostras)):
     
     # ÁREA DE COPIAR E COLAR DO EXCEL
     with st.expander("📋 Colar dados direto do Excel (Opcional - Preenchimento Rápido)"):
-        st.info("Copie do Excel o bloco de dados (4 linhas de 30s a 5min das colunas de Tensão até RPM) e cole abaixo:")
+        st.info("Copie do Excel a tabela de medições da amostra e cole abaixo:")
         excel_paste = st.text_area("Cole aqui as células copiadas do Excel:", key=f"paste_{idx}", height=100)
     
     pasted_grid = parse_pasted_excel(excel_paste, tem_rpm=incluir_rpm)
     
     def get_val(r, c, default=""):
         if pasted_grid and len(pasted_grid) > r and len(pasted_grid[r]) > c:
-            return clean_excel_val(pasted_grid[r][c])
+            return pasted_grid[r][c]
         return default
 
     if incluir_rpm:
@@ -894,40 +922,4 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
             r_a.font.size = Pt(10.0)
             
             p_qtd = row.cells[2].paragraphs[0]
-            p_qtd.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p_qtd.paragraph_format.space_before = Pt(4)
-            p_qtd.paragraph_format.space_after = Pt(4)
-            r_q = p_qtd.add_run(str(info["qtd"]))
-            r_q.font.name = 'Arial'
-            r_q.font.size = Pt(10.0)
-            
-            p_imp = row.cells[3].paragraphs[0]
-            p_imp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p_imp.paragraph_format.space_before = Pt(4)
-            p_imp.paragraph_format.space_after = Pt(4)
-            r_i = p_imp.add_run(info["impacto"])
-            r_i.font.name = 'Arial'
-            r_i.font.size = Pt(10.0)
-            
-        prevent_table_split(tbl_mat)
-    else:
-        p_no_fail = doc.add_paragraph()
-        p_no_fail.paragraph_format.space_before = Pt(2)
-        p_no_fail.paragraph_format.space_after = Pt(6)
-        r_nf = p_no_fail.add_run("Nenhuma categoria de falha identificada durante os testes das amostras.")
-        r_nf.font.name = 'Arial'
-        r_nf.font.size = Pt(10.0)
-        r_nf.font.italic = True
-
-    buffer = io.BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-
-    st.success("✅ Relatório Word (.docx) gerado com sucesso!")
-    st.download_button(
-        label="📥 Baixar Documento Word (.docx)",
-        data=buffer,
-        file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Relatorio'}.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        use_container_width=True
-    )
+            p_qtd.alignment

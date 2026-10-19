@@ -9,6 +9,7 @@ import io
 import os
 import math
 import statistics
+import re
 
 # Configuração da página Web
 st.set_page_config(page_title="Gerador de Relatórios - Kärcher", layout="wide", page_icon="⚙️")
@@ -55,12 +56,24 @@ def add_field(paragraph, field_type):
     r.append(fldChar2)
     r.append(fldChar3)
 
+def clean_excel_val(val_str):
+    """Remove unidades de medida (V, A, kW, bar, l/h, -, etc) deixando apenas o valor numérico"""
+    if not val_str:
+        return ""
+    val_clean = str(val_str).strip()
+    if val_clean in ["-", "--", "#DIV/0!", "N/A", "n/a"]:
+        return ""
+    # Remove textos de unidades comuns mantendo números, vírgulas e pontos
+    val_clean = re.sub(r'[^\d.,]', '', val_clean).strip()
+    return val_clean
+
 def safe_float(val):
     """Converte texto digitado para float de forma segura para cálculos"""
     try:
-        if not val:
+        val_c = clean_excel_val(val)
+        if not val_c:
             return None
-        return float(str(val).replace(',', '.'))
+        return float(val_c.replace(',', '.'))
     except ValueError:
         return None
 
@@ -76,7 +89,8 @@ def fmt_br(val):
     """Converte o float/string para o formato com vírgula (ex: 220,8)"""
     if val == "" or val is None:
         return ""
-    return str(val).replace('.', ',')
+    val_c = clean_excel_val(val)
+    return val_c.replace('.', ',') if val_c else str(val).replace('.', ',')
 
 def format_horas(val_texto):
     """ Adiciona automaticamente o sufixo 'horas' caso o usuário digite apenas números """
@@ -103,6 +117,21 @@ def format_voltagem(val_texto):
     if not val_clean.upper().endswith("V"):
         return f"{val_clean}V"
     return val_clean.upper()
+
+def parse_pasted_excel(pasted_text, tem_rpm=False):
+    """Processa o texto colado do Excel e extrai a matriz 4x5 ou 4x6"""
+    if not pasted_text or not pasted_text.strip():
+        return None
+    lines = [line.strip() for line in pasted_text.strip().split('\n') if line.strip()]
+    grid = []
+    for line in lines:
+        cols = [c.strip() for c in line.split('\t')]
+        if len(cols) == 1 and ';' in cols[0]:
+            cols = [c.strip() for c in line.split(';')]
+        grid.append(cols)
+    if len(grid) < 4:
+        return None
+    return grid
 
 # Verifica se a logo está presente na pasta
 logo_path = os.path.join(os.path.dirname(__file__), "logo_karcher.png")
@@ -188,6 +217,18 @@ for idx in range(int(num_amostras)):
 
     st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
     
+    # ÁREA DE COPIAR E COLAR DO EXCEL
+    with st.expander("📋 Colar dados direto do Excel (Opcional - Preenchimento Rápido)"):
+        st.info("Copie do Excel o bloco de dados (4 linhas de 30s a 5min das colunas de Tensão até RPM) e cole abaixo:")
+        excel_paste = st.text_area("Cole aqui as células copiadas do Excel:", key=f"paste_{idx}", height=100)
+    
+    pasted_grid = parse_pasted_excel(excel_paste, tem_rpm=incluir_rpm)
+    
+    def get_val(r, c, default=""):
+        if pasted_grid and len(pasted_grid) > r and len(pasted_grid[r]) > c:
+            return clean_excel_val(pasted_grid[r][c])
+        return default
+
     if incluir_rpm:
         m1, m2, m3, m4, m5, m6 = st.columns(6)
     else:
@@ -195,47 +236,47 @@ for idx in range(int(num_amostras)):
     
     with m1:
         st.caption("1. Tensão (V)")
-        v30 = st.text_input("30s", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
-        v1m = st.text_input("1min", value="", placeholder="Ex: 127.5", key=f"v1m_{idx}")
-        v3m = st.text_input("3min", value="", placeholder="Ex: 128.0", key=f"v3m_{idx}")
-        v5m = st.text_input("5min", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
+        v30 = st.text_input("30s", value=get_val(0, 0), placeholder="Ex: 126.2", key=f"v30_{idx}")
+        v1m = st.text_input("1min", value=get_val(1, 0), placeholder="Ex: 127.5", key=f"v1m_{idx}")
+        v3m = st.text_input("3min", value=get_val(2, 0), placeholder="Ex: 128.0", key=f"v3m_{idx}")
+        v5m = st.text_input("5min", value=get_val(3, 0), placeholder="Ex: 127.1", key=f"v5m_{idx}")
 
     with m2:
         st.caption("2. Corrente (A)")
-        i30 = st.text_input("30s", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
-        i1m = st.text_input("1min", value="", placeholder="Ex: 12.64", key=f"i1m_{idx}")
-        i3m = st.text_input("3min", value="", placeholder="Ex: 12.60", key=f"i3m_{idx}")
-        i5m = st.text_input("5min", value="", placeholder="Ex: 12.38", key=f"i5m_{idx}")
+        i30 = st.text_input("30s", value=get_val(0, 1), placeholder="Ex: 12.68", key=f"i30_{idx}")
+        i1m = st.text_input("1min", value=get_val(1, 1), placeholder="Ex: 12.64", key=f"i1m_{idx}")
+        i3m = st.text_input("3min", value=get_val(2, 1), placeholder="Ex: 12.60", key=f"i3m_{idx}")
+        i5m = st.text_input("5min", value=get_val(3, 1), placeholder="Ex: 12.38", key=f"i5m_{idx}")
 
     with m3:
         st.caption("3. Potência (kW)")
-        p30 = st.text_input("30s", value="", placeholder="Ex: 1.53", key=f"p30_{idx}")
-        p1m = st.text_input("1min", value="", placeholder="Ex: 1.54", key=f"p1m_{idx}")
-        p3m = st.text_input("3min", value="", placeholder="Ex: 1.55", key=f"p3m_{idx}")
-        p5m = st.text_input("5min", value="", placeholder="Ex: 1.50", key=f"p5m_{idx}")
+        p30 = st.text_input("30s", value=get_val(0, 2), placeholder="Ex: 1.53", key=f"p30_{idx}")
+        p1m = st.text_input("1min", value=get_val(1, 2), placeholder="Ex: 1.54", key=f"p1m_{idx}")
+        p3m = st.text_input("3min", value=get_val(2, 2), placeholder="Ex: 1.55", key=f"p3m_{idx}")
+        p5m = st.text_input("5min", value=get_val(3, 2), placeholder="Ex: 1.50", key=f"p5m_{idx}")
 
     with m4:
         st.caption("4. Pressão bico (bar)")
-        pr30 = st.text_input("30s", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
-        pr1m = st.text_input("1min", value="", placeholder="Ex: 93.2", key=f"pr1m_{idx}")
-        pr3m = st.text_input("3min", value="", placeholder="Ex: 94.0", key=f"pr3m_{idx}")
-        pr5m = st.text_input("5min", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
+        pr30 = st.text_input("30s", value=get_val(0, 3), placeholder="Ex: 91.9", key=f"pr30_{idx}")
+        pr1m = st.text_input("1min", value=get_val(1, 3), placeholder="Ex: 93.2", key=f"pr1m_{idx}")
+        pr3m = st.text_input("3min", value=get_val(2, 3), placeholder="Ex: 94.0", key=f"pr3m_{idx}")
+        pr5m = st.text_input("5min", value=get_val(3, 3), placeholder="Ex: 94.5", key=f"pr5m_{idx}")
 
     with m5:
         st.caption("5. Vazão (l/h)")
-        vz30 = st.text_input("30s", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
-        vz1m = st.text_input("1min", value="", placeholder="Ex: 295", key=f"vz1m_{idx}")
-        vz3m = st.text_input("3min", value="", placeholder="Ex: 296", key=f"vz3m_{idx}")
-        vz5m = st.text_input("5min", value="", placeholder="Ex: 297", key=f"vz5m_{idx}")
+        vz30 = st.text_input("30s", value=get_val(0, 4), placeholder="Ex: 293", key=f"vz30_{idx}")
+        vz1m = st.text_input("1min", value=get_val(1, 4), placeholder="Ex: 295", key=f"vz1m_{idx}")
+        vz3m = st.text_input("3min", value=get_val(2, 4), placeholder="Ex: 296", key=f"vz3m_{idx}")
+        vz5m = st.text_input("5min", value=get_val(3, 4), placeholder="Ex: 297", key=f"vz5m_{idx}")
 
     rpm30, rpm1m, rpm3m, rpm5m, mrpm, std_rpm = "", "", "", "", "", ""
     if incluir_rpm:
         with m6:
             st.caption("6. RPM")
-            rpm30 = st.text_input("30s", value="", placeholder="Ex: 3450", key=f"rpm30_{idx}")
-            rpm1m = st.text_input("1min", value="", placeholder="Ex: 3435", key=f"rpm1m_{idx}")
-            rpm3m = st.text_input("3min", value="", placeholder="Ex: 3420", key=f"rpm3m_{idx}")
-            rpm5m = st.text_input("5min", value="", placeholder="Ex: 3410", key=f"rpm5m_{idx}")
+            rpm30 = st.text_input("30s", value=get_val(0, 5), placeholder="Ex: 3450", key=f"rpm30_{idx}")
+            rpm1m = st.text_input("1min", value=get_val(1, 5), placeholder="Ex: 3435", key=f"rpm1m_{idx}")
+            rpm3m = st.text_input("3min", value=get_val(2, 5), placeholder="Ex: 3420", key=f"rpm3m_{idx}")
+            rpm5m = st.text_input("5min", value=get_val(3, 5), placeholder="Ex: 3410", key=f"rpm5m_{idx}")
 
     # Listas de valores convertidos para float
     num_v = [safe_float(v30), safe_float(v1m), safe_float(v3m), safe_float(v5m)]

@@ -125,7 +125,7 @@ with c1:
         placeholder="Digite aqui a conclusão e parecer técnico geral...")
 
 with c2:
-    tecnico = st.text_input("Responsável", value="", placeholder="Digite seu nome...")
+    tecnico = st.text_input("Responsável / Notificação (@ e-mail)", value="", placeholder="Ex: @nome.sobrenome@karcher.com")
     normas = st.text_area("Critério de Aprovação / Normas", value="", height=120, placeholder="Digite os critérios / normas...")
 
 with c3:
@@ -171,6 +171,20 @@ for idx in range(int(num_amostras)):
         horas_ensaio = format_horas(horas_input)
     with col_c:
         defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
+        
+        col_cat, col_imp = st.columns(2)
+        with col_cat:
+            categoria_falha = st.selectbox(
+                "Categoria da Falha",
+                ["Nenhuma", "Vazamento / Vedação", "Motor / Sobreaquecimento", "Elétrica / Chave", "Mecânica / Bomba", "Acessórios / Pistola / Lança", "Outros"],
+                key=f"cat_{idx}"
+            )
+        with col_imp:
+            impacto_falha = st.selectbox(
+                "Impacto no Teste",
+                ["Nenhum", "Baixo", "Moderado", "Crítico"],
+                key=f"imp_{idx}"
+            )
 
     st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
     
@@ -272,6 +286,8 @@ for idx in range(int(num_amostras)):
         "partida_status": partida_status,
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
+        "categoria_falha": categoria_falha,
+        "impacto_falha": impacto_falha,
         "fotos": fotos_bytes,
         "v30": fmt_br(v30), "v1m": fmt_br(v1m), "v3m": fmt_br(v3m), "v5m": fmt_br(v5m), "mv": fmt_br(mv), "std_v": fmt_br(std_v),
         "i30": fmt_br(i30), "i1m": fmt_br(i1m), "i3m": fmt_br(i3m), "i5m": fmt_br(i5m), "mi": fmt_br(mi), "std_i": fmt_br(std_i),
@@ -390,7 +406,7 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     # TABELA UNIFICADA DE INFORMAÇÕES GERAIS
     meta_info = [
         ("ST", codigo_st),
-        ("Teste realizado por", tecnico),
+        ("Teste realizado por / Notificação", tecnico),
         ("Data", data_ensaio),
         ("Item testado", item_testado),
         ("Quantidade de Amostras", str(num_amostras)),
@@ -768,6 +784,99 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
         r_f.font.size = Pt(10.0)
 
     prevent_table_split(tbl_res)
+
+    doc.add_paragraph()
+
+    # ----------------------------------------------------
+    # SEÇÃO 3: MATRIZ DE FREQUÊNCIA E IMPACTO DE FALHAS (OPÇÃO A)
+    # ----------------------------------------------------
+    p_mat_lbl = doc.add_paragraph()
+    p_mat_lbl.paragraph_format.keep_with_next = True
+    p_mat_lbl.paragraph_format.space_before = Pt(12)
+    p_mat_lbl.paragraph_format.space_after = Pt(6)
+    r_mat_lbl = p_mat_lbl.add_run("3- Matriz de Frequência e Impacto de Falhas")
+    r_mat_lbl.font.name = 'Arial'
+    r_mat_lbl.bold = True
+    r_mat_lbl.font.size = Pt(11)
+
+    # Agrupamento automático de falhas por categoria
+    matriz_agrupada = {}
+    for am in amostras_dados:
+        cat = am.get("categoria_falha", "Nenhuma")
+        imp = am.get("impacto_falha", "Nenhum")
+        s_id = am.get("sample_id", "")
+        
+        if cat != "Nenhuma":
+            if cat not in matriz_agrupada:
+                matriz_agrupada[cat] = {"amostras": [], "qtd": 0, "impacto": imp}
+            matriz_agrupada[cat]["amostras"].append(s_id)
+            matriz_agrupada[cat]["qtd"] += 1
+            # Mantém o impacto mais severo cadastrado
+            ordem_impacto = {"Nenhum": 0, "Baixo": 1, "Moderado": 2, "Crítico": 3}
+            if ordem_impacto.get(imp, 0) > ordem_impacto.get(matriz_agrupada[cat]["impacto"], 0):
+                matriz_agrupada[cat]["impacto"] = imp
+
+    if matriz_agrupada:
+        tbl_mat = doc.add_table(rows=len(matriz_agrupada)+1, cols=4)
+        tbl_mat.style = 'Table Grid'
+        tbl_mat.alignment = WD_TABLE_ALIGNMENT.CENTER
+        
+        headers_mat = ["Categoria da Falha", "Amostras Afetadas", "Total de Ocorrências", "Impacto no Teste"]
+        for c_i, h_txt in enumerate(headers_mat):
+            cell = tbl_mat.rows[0].cells[c_i]
+            set_cell_background(cell, "A6A6A6")
+            p = cell.paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.space_before = Pt(4)
+            p.paragraph_format.space_after = Pt(4)
+            r_h = p.add_run(h_txt)
+            r_h.font.name = 'Arial'
+            r_h.bold = True
+            r_h.font.size = Pt(10.0)
+
+        for row_idx, (cat, info) in enumerate(matriz_agrupada.items()):
+            row = tbl_mat.rows[row_idx + 1]
+            
+            p_cat = row.cells[0].paragraphs[0]
+            p_cat.paragraph_format.space_before = Pt(4)
+            p_cat.paragraph_format.space_after = Pt(4)
+            r_c = p_cat.add_run(cat)
+            r_c.font.name = 'Arial'
+            r_c.font.size = Pt(10.0)
+            
+            p_am = row.cells[1].paragraphs[0]
+            p_am.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_am.paragraph_format.space_before = Pt(4)
+            p_am.paragraph_format.space_after = Pt(4)
+            r_a = p_am.add_run(", ".join(info["amostras"]))
+            r_a.font.name = 'Arial'
+            r_a.font.size = Pt(10.0)
+            
+            p_qtd = row.cells[2].paragraphs[0]
+            p_qtd.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_qtd.paragraph_format.space_before = Pt(4)
+            p_qtd.paragraph_format.space_after = Pt(4)
+            r_q = p_qtd.add_run(str(info["qtd"]))
+            r_q.font.name = 'Arial'
+            r_q.font.size = Pt(10.0)
+            
+            p_imp = row.cells[3].paragraphs[0]
+            p_imp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_imp.paragraph_format.space_before = Pt(4)
+            p_imp.paragraph_format.space_after = Pt(4)
+            r_i = p_imp.add_run(info["impacto"])
+            r_i.font.name = 'Arial'
+            r_i.font.size = Pt(10.0)
+            
+        prevent_table_split(tbl_mat)
+    else:
+        p_no_fail = doc.add_paragraph()
+        p_no_fail.paragraph_format.space_before = Pt(2)
+        p_no_fail.paragraph_format.space_after = Pt(6)
+        r_nf = p_no_fail.add_run("Nenhuma categoria de falha identificada durante os testes das amostras.")
+        r_nf.font.name = 'Arial'
+        r_nf.font.size = Pt(10.0)
+        r_nf.font.italic = True
 
     buffer = io.BytesIO()
     doc.save(buffer)

@@ -79,4 +79,93 @@ def fmt_br(val):
 
 def format_horas(val_texto):
     """ Adiciona automaticamente o sufixo 'horas' caso o utilizador digite apenas números """
-    if not
+    if not val_texto:
+        return ""
+    val_clean = str(val_texto).strip()
+    if val_clean.isdigit():
+        return f"{val_clean} horas"
+    if not val_clean.lower().endswith("horas") and not val_clean.lower().endswith("h"):
+        return f"{val_clean} horas"
+    if val_clean.lower().endswith("h"):
+        val_num = val_clean[:-1].strip()
+        if val_num.isdigit():
+            return f"{val_num} horas"
+    return val_clean
+
+def format_voltagem(val_texto):
+    """ Adiciona automaticamente o 'V' ao final da tensão se o utilizador não digitar """
+    if not val_texto:
+        return ""
+    val_clean = str(val_texto).strip()
+    if val_clean.isdigit():
+        return f"{val_clean}V"
+    if not val_clean.upper().endswith("V"):
+        return f"{val_clean}V"
+    return val_clean.upper()
+
+# Verifica se a imagem do logótipo está presente no repositório
+logo_path = os.path.join(os.path.dirname(__file__), "logo_karcher.png")
+if not os.path.exists(logo_path):
+    if os.path.exists("logo_karcher.png"):
+        logo_path = "logo_karcher.png"
+    else:
+        st.warning("⚠️ Imagem 'logo_karcher.png' não foi encontrada no GitHub.")
+
+# 1. CABEÇALHO / IDENTIFICAÇÃO GERAL
+st.header("1. Informações Gerais do Ensaio")
+c1, c2, c3 = st.columns(3)
+
+with c1:
+    codigo_st = st.text_input("ST", value="", placeholder="Ex: 001941")
+    objetivo = st.text_area("Objetivo do Teste", value="", height=80, placeholder="Digite o objetivo do teste...")
+    conclusao_texto = st.text_area("Conclusão / Parecer Técnico Geral", 
+        value="", 
+        height=120,
+        placeholder="Digite aqui a conclusão e parecer técnico geral...")
+
+with c2:
+    tecnico = st.text_input("Responsável / Notificação (@ e-mail)", value="", placeholder="Ex: @nome.sobrenome@karcher.com")
+    normas = st.text_area("Critério de Aprovação / Normas", value="", height=120, placeholder="Digite os critérios / normas...")
+
+with c3:
+    item_testado = st.text_input("Item Testado", value="", placeholder="O que você está testando?...")
+    data_ensaio = st.text_input("Data do Teste", value="", placeholder="Ex: 01/01/2026")
+    vida_util_input = st.text_input("Tempo de vida útil", value="", placeholder="Ex: 600")
+
+# Formatação automática do tempo de vida útil
+vida_util_geral = format_horas(vida_util_input)
+
+st.markdown("---")
+
+# 2. CADASTRO DINÂMICO DE AMOSTRAS E MEDIÇÕES
+st.header("2. Cadastro de Amostras (Medições, Fotos e Defeitos)")
+
+c_quant, c_rpm_opt = st.columns([1, 1])
+
+with c_quant:
+    num_amostras = st.number_input("Quantidade de Amostras", min_value=1, value=1)
+
+with c_rpm_opt:
+    incluir_rpm = st.selectbox("Equipamento possui medição de RPM?", ["Não", "Sim"]) == "Sim"
+
+amostras_dados = []
+
+for idx in range(int(num_amostras)):
+    st.markdown(f"## Amostra {idx+1}")
+    
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        sample_id = st.text_input("Modelo", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
+        voltagem_input = st.text_input("Tensão (V)", value="", placeholder="127V / 220V", key=f"volt_{idx}")
+        voltagem_conexao = format_voltagem(voltagem_input)
+    with col_b:
+        col_p1, col_p2 = st.columns([1, 1])
+        with col_p1:
+            partiu_frio = st.selectbox("Partiu a frio?", ["Sim", "Não"], key=f"p_status_{idx}")
+        with col_p2:
+            tensao_partida = st.text_input("Tensão de Partida", value="", placeholder="Ex: 94V", key=f"p_tensao_{idx}")
+        
+        partida_status = partiu_frio
+        horas_input = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116", key=f"h_{idx}")
+        horas_ensaio = format_horas(horas_input)
+    with col_c:

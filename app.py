@@ -78,7 +78,7 @@ def fmt_br(val):
     return str(val).replace('.', ',')
 
 def format_horas(val_texto):
-    """ Adiciona automaticamente o sufixo 'horas' caso o usuário digite apenas números """
+    """ Adiciona automaticamente o sufixo 'horas' caso o utilizador digite apenas números """
     if not val_texto:
         return ""
     val_clean = str(val_texto).strip()
@@ -93,7 +93,7 @@ def format_horas(val_texto):
     return val_clean
 
 def format_voltagem(val_texto):
-    """ Adiciona automaticamente o 'V' ao final da tensão se o usuário não digitar """
+    """ Adiciona automaticamente o 'V' ao final da tensão se o utilizador não digitar """
     if not val_texto:
         return ""
     val_clean = str(val_texto).strip()
@@ -170,4 +170,19 @@ for idx in range(int(num_amostras)):
     with col_c:
         defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
         
-        col_cat
+        col_cat, col_imp = st.columns(2)
+        with col_cat:
+            categorias_falha = st.multiselect(
+                "Categorias da Falha",
+                options=["Vazamento / Vedação", "Motor / Sobreaquecimento", "Elétrica / Chave", "Mecânica / Bomba", "Acessórios / Pistola / Lança", "Outros"],
+                default=[],
+                key=f"cat_{idx}"
+            )
+        with col_imp:
+            impacto_falha = st.selectbox(
+                "Impacto no Teste",
+                ["Nenhum", "Baixo", "Moderado", "Crítico"],
+                key=f"imp_{idx}"
+            )
+
+    st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")

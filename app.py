@@ -103,7 +103,7 @@ def format_voltagem(val_texto):
         return f"{val_clean}V"
     return val_clean.upper()
 
-# Verifica se a imagem do logótipo está presente no repositório
+# Verifica se o logótipo está presente no repositório
 logo_path = os.path.join(os.path.dirname(__file__), "logo_karcher.png")
 if not os.path.exists(logo_path):
     if os.path.exists("logo_karcher.png"):
@@ -132,7 +132,6 @@ with c3:
     data_ensaio = st.text_input("Data do Teste", value="", placeholder="Ex: 01/01/2026")
     vida_util_input = st.text_input("Tempo de vida útil", value="", placeholder="Ex: 600")
 
-# Formatação automática do tempo de vida útil
 vida_util_geral = format_horas(vida_util_input)
 
 st.markdown("---")
@@ -169,3 +168,40 @@ for idx in range(int(num_amostras)):
         horas_input = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116", key=f"h_{idx}")
         horas_ensaio = format_horas(horas_input)
     with col_c:
+        defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
+        
+        col_cat, col_imp = st.columns(2)
+        with col_cat:
+            categorias_falha = st.multiselect(
+                "Categorias da Falha",
+                options=["Vazamento / Vedação", "Motor / Sobreaquecimento", "Elétrica / Chave", "Mecânica / Bomba", "Acessórios / Pistola / Lança", "Outros"],
+                default=[],
+                key=f"cat_{idx}"
+            )
+        with col_imp:
+            impacto_falha = st.selectbox(
+                "Impacto no Teste",
+                ["Nenhum", "Baixo", "Moderado", "Crítico"],
+                key=f"imp_{idx}"
+            )
+
+    st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
+    
+    if incluir_rpm:
+        m1, m2, m3, m4, m5, m6 = st.columns(6)
+    else:
+        m1, m2, m3, m4, m5 = st.columns(5)
+    
+    with m1:
+        st.caption("1. Tensão (V)")
+        v30 = st.text_input("30s", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
+        v1m = st.text_input("1min", value="", placeholder="Ex: 127.5", key=f"v1m_{idx}")
+        v3m = st.text_input("3min", value="", placeholder="Ex: 128.0", key=f"v3m_{idx}")
+        v5m = st.text_input("5min", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
+
+    with m2:
+        st.caption("2. Corrente (A)")
+        i30 = st.text_input("30s", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
+        i1m = st.text_input("1min", value="", placeholder="Ex: 12.64", key=f"i1m_{idx}")
+        i3m = st.text_input("3min", value="", placeholder="Ex: 12.60", key=f"i3m_{idx}")
+        i5m = st.text_input("5min

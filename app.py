@@ -79,7 +79,7 @@ def fmt_br(val):
     return str(val).replace('.', ',')
 
 def format_horas(val_texto):
-    """ Adiciona automaticamente o sufixo 'horas' caso o usuário digite apenas números """
+    """ Adiciona automaticamente o sufixo 'horas' caso o utilizador digite apenas números """
     if not val_texto:
         return ""
     val_clean = str(val_texto).strip()
@@ -94,7 +94,7 @@ def format_horas(val_texto):
     return val_clean
 
 def format_voltagem(val_texto):
-    """ Adiciona automaticamente o 'V' ao final da tensão se o usuário não digitar """
+    """ Adiciona automaticamente o 'V' ao final da tensão se o utilizador não digitar """
     if not val_texto:
         return ""
     val_clean = str(val_texto).strip()
@@ -104,7 +104,7 @@ def format_voltagem(val_texto):
         return f"{val_clean}V"
     return val_clean.upper()
 
-# Verifica se a logo está presente na pasta
+# Verifica se a imagem do logótipo está presente no repositório
 logo_path = os.path.join(os.path.dirname(__file__), "logo_karcher.png")
 if not os.path.exists(logo_path):
     if os.path.exists("logo_karcher.png"):
@@ -152,77 +152,4 @@ with c_rpm_opt:
 amostras_dados = []
 
 for idx in range(int(num_amostras)):
-    st.markdown(f"## Amostra {idx+1}")
-    
-    col_a, col_b, col_c = st.columns(3)
-    with col_a:
-        sample_id = st.text_input("Modelo", value="", placeholder="Ex: AM 1", key=f"id_{idx}")
-        voltagem_input = st.text_input("Tensão (V)", value="", placeholder="127V / 220V", key=f"volt_{idx}")
-        voltagem_conexao = format_voltagem(voltagem_input)
-    with col_b:
-        col_p1, col_p2 = st.columns([1, 1])
-        with col_p1:
-            partiu_frio = st.selectbox("Partiu a frio?", ["Sim", "Não"], key=f"p_status_{idx}")
-        with col_p2:
-            tensao_partida = st.text_input("Tensão de Partida", value="", placeholder="Ex: 94V", key=f"p_tensao_{idx}")
-        
-        partida_status = partiu_frio
-        horas_input = st.text_input("Tempo de Teste / Horas", value="", placeholder="Ex: 116", key=f"h_{idx}")
-        horas_ensaio = format_horas(horas_input)
-    with col_c:
-        defeitos_texto = st.text_area("Lista de Falhas", value="", placeholder="Digite as falhas encontradas...", key=f"def_{idx}", height=80)
-        
-        col_cat, col_imp = st.columns(2)
-        with col_cat:
-            categoria_falha = st.selectbox(
-                "Categoria da Falha",
-                ["Nenhuma", "Vazamento / Vedação", "Motor / Sobreaquecimento", "Elétrica / Chave", "Mecânica / Bomba", "Acessórios / Pistola / Lança", "Outros"],
-                key=f"cat_{idx}"
-            )
-        with col_imp:
-            impacto_falha = st.selectbox(
-                "Impacto no Teste",
-                ["Nenhum", "Baixo", "Moderado", "Crítico"],
-                key=f"imp_{idx}"
-            )
-
-    st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
-    
-    if incluir_rpm:
-        m1, m2, m3, m4, m5, m6 = st.columns(6)
-    else:
-        m1, m2, m3, m4, m5 = st.columns(5)
-    
-    with m1:
-        st.caption("1. Tensão (V)")
-        v30 = st.text_input("30s", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
-        v1m = st.text_input("1min", value="", placeholder="Ex: 127.5", key=f"v1m_{idx}")
-        v3m = st.text_input("3min", value="", placeholder="Ex: 128.0", key=f"v3m_{idx}")
-        v5m = st.text_input("5min", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
-
-    with m2:
-        st.caption("2. Corrente (A)")
-        i30 = st.text_input("30s", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
-        i1m = st.text_input("1min", value="", placeholder="Ex: 12.64", key=f"i1m_{idx}")
-        i3m = st.text_input("3min", value="", placeholder="Ex: 12.60", key=f"i3m_{idx}")
-        i5m = st.text_input("5min", value="", placeholder="Ex: 12.38", key=f"i5m_{idx}")
-
-    with m3:
-        st.caption("3. Potência (kW)")
-        p30 = st.text_input("30s", value="", placeholder="Ex: 1.53", key=f"p30_{idx}")
-        p1m = st.text_input("1min", value="", placeholder="Ex: 1.54", key=f"p1m_{idx}")
-        p3m = st.text_input("3min", value="", placeholder="Ex: 1.55", key=f"p3m_{idx}")
-        p5m = st.text_input("5min", value="", placeholder="Ex: 1.50", key=f"p5m_{idx}")
-
-    with m4:
-        st.caption("4. Pressão bico (bar)")
-        pr30 = st.text_input("30s", value="", placeholder="Ex: 91.9", key=f"pr30_{idx}")
-        pr1m = st.text_input("1min", value="", placeholder="Ex: 93.2", key=f"pr1m_{idx}")
-        pr3m = st.text_input("3min", value="", placeholder="Ex: 94.0", key=f"pr3m_{idx}")
-        pr5m = st.text_input("5min", value="", placeholder="Ex: 94.5", key=f"pr5m_{idx}")
-
-    with m5:
-        st.caption("5. Vazão (l/h)")
-        vz30 = st.text_input("30s", value="", placeholder="Ex: 293", key=f"vz30_{idx}")
-        vz1m = st.text_input("1min", value="", placeholder="Ex: 295", key=f"vz1m_{idx}")
-        vz3m = st.text_
+    st.markdown(f

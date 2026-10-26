@@ -151,6 +151,15 @@ with c_rpm_opt:
 
 amostras_dados = []
 
+opcoes_categorias = [
+    "Vazamento / Vedação",
+    "Motor / Sobreaquecimento",
+    "Elétrica / Chave",
+    "Mecânica / Bomba",
+    "Acessórios / Pistola / Lança",
+    "Outros"
+]
+
 for idx in range(int(num_amostras)):
     st.markdown(f"## Amostra {idx+1}")
     
@@ -174,10 +183,12 @@ for idx in range(int(num_amostras)):
         
         col_cat, col_imp = st.columns(2)
         with col_cat:
-            categoria_falha = st.selectbox(
-                "Categoria da Falha",
-                ["Nenhuma", "Vazamento / Vedação", "Motor / Sobreaquecimento", "Elétrica / Chave", "Mecânica / Bomba", "Acessórios / Pistola / Lança", "Outros"],
-                key=f"cat_{idx}"
+            categorias_falha = st.multiselect(
+                "Categorias da Falha",
+                options=opcoes_categorias,
+                default=[],
+                key=f"cat_{idx}",
+                help="Selecione todas as categorias de falha aplicáveis a esta amostra"
             )
         with col_imp:
             impacto_falha = st.selectbox(
@@ -286,7 +297,7 @@ for idx in range(int(num_amostras)):
         "partida_status": partida_status,
         "horas": horas_ensaio,
         "defeitos": defeitos_texto,
-        "categoria_falha": categoria_falha,
+        "categorias_falha": categorias_falha,
         "impacto_falha": impacto_falha,
         "fotos": fotos_bytes,
         "v30": fmt_br(v30), "v1m": fmt_br(v1m), "v3m": fmt_br(v3m), "v5m": fmt_br(v5m), "mv": fmt_br(mv), "std_v": fmt_br(std_v),
@@ -641,4 +652,252 @@ if st.button("🚀 GERAR RELATÓRIO WORD (.DOCX)", type="primary", use_container
     for am_idx, am in enumerate(amostras_dados):
         p_am = doc.add_paragraph()
         
-        # Garante que cada amostra a partir da 2ª inicie em uma NOVA P
+        # Garante que cada amostra a partir da 2ª inicie em uma NOVA PÁGINA inteira
+        if am_idx > 0:
+            p_am.paragraph_format.page_break_before = True
+            
+        p_am.paragraph_format.keep_with_next = True
+        p_am.paragraph_format.space_before = Pt(6)
+        p_am.paragraph_format.space_after = Pt(2)
+        
+        v_str = f" ({am['voltagem_conexao']})" if am['voltagem_conexao'] else ""
+        h_str = f"Após {am['horas']}" if am['horas'] else "Após o ensaio"
+        r_am = p_am.add_run(f"• {am['sample_id']}{v_str} - {h_str}:")
+        r_am.font.name = 'Arial'
+        r_am.bold = True
+        
+        fotos_list = am["fotos"] if am["fotos"] else []
+        num_fotos = len(fotos_list)
+        
+        # REGRA DE GRADE FIXA EM 3 COLUNAS
+        num_linhas_fotos = math.ceil(num_fotos / 3) if num_fotos > 0 else 1
+        total_rows_tbl = num_linhas_fotos + 1
+        
+        tbl_am_fail = doc.add_table(rows=total_rows_tbl, cols=3)
+        tbl_am_fail.style = 'Table Grid'
+        tbl_am_fail.alignment = WD_TABLE_ALIGNMENT.CENTER
+        
+        if num_fotos > 0:
+            for f_i, img_bytes in enumerate(fotos_list):
+                row_idx = f_i // 3
+                items_na_linha = min(3, num_fotos - (row_idx * 3))
+                
+                if items_na_linha == 1:
+                    col_idx = 1
+                elif items_na_linha == 2:
+                    col_idx = f_i % 3
+                else:
+                    col_idx = f_i % 3
+
+                row_img = tbl_am_fail.rows[row_idx]
+                
+                cell_img = row_img.cells[col_idx]
+                cell_img.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+                
+                p_img = cell_img.paragraphs[0]
+                p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p_img.paragraph_format.space_before = Pt(4)
+                p_img.paragraph_format.space_after = Pt(4)
+                
+                img_stream = io.BytesIO(img_bytes)
+                p_img.add_run().add_picture(img_stream, width=Inches(1.8))
+        else:
+            row_img = tbl_am_fail.rows[0]
+            p_empty = row_img.cells[1].paragraphs[0]
+            p_empty.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_empty.paragraph_format.space_before = Pt(4)
+            p_empty.paragraph_format.space_after = Pt(4)
+            r_no_img = p_empty.add_run("[Sem imagens anexadas]")
+            r_no_img.font.name = 'Arial'
+            r_no_img.font.size = Pt(9.5)
+            r_no_img.font.italic = True
+        
+        # LINHA FINAL DA TABELA: LISTA DE DEFEITOS
+        row_falhas = tbl_am_fail.rows[num_linhas_fotos]
+        
+        cell_falhas = row_falhas.cells[0]
+        cell_falhas = cell_falhas.merge(row_falhas.cells[2])
+            
+        p_f_lbl = cell_falhas.paragraphs[0]
+        p_f_lbl.paragraph_format.space_before = Pt(4)
+        p_f_lbl.paragraph_format.space_after = Pt(2)
+        r_f_hdr = p_f_lbl.add_run("Falhas / Defeitos apresentados:")
+        r_f_hdr.font.name = 'Arial'
+        r_f_hdr.font.size = Pt(10.0)
+        r_f_hdr.bold = True
+        
+        p_f_txt = cell_falhas.add_paragraph()
+        p_f_txt.paragraph_format.space_before = Pt(0)
+        p_f_txt.paragraph_format.space_after = Pt(4)
+        r_f_body = p_f_txt.add_run(am["defeitos"] if am["defeitos"] else "Nenhum defeito relatado.")
+        r_f_body.font.name = 'Arial'
+        r_f_body.font.size = Pt(10.0)
+            
+        prevent_table_split(tbl_am_fail)
+
+        doc.add_paragraph()
+
+    # RESUMO DE DURABILIDADE
+    p_res_lbl = doc.add_paragraph()
+    p_res_lbl.paragraph_format.keep_with_next = True
+    r_res_lbl = p_res_lbl.add_run("Resumo das informações de defeitos e durabilidade apresentadas pelas amostras")
+    r_res_lbl.font.name = 'Arial'
+    r_res_lbl.bold = True
+    
+    tbl_res = doc.add_table(rows=len(amostras_dados)+1, cols=4)
+    tbl_res.style = 'Table Grid'
+    tbl_res.alignment = WD_TABLE_ALIGNMENT.CENTER
+    
+    headers_res = ["Amostra", "Tempo de teste", "Vida útil esperada", "Falhas apresentadas"]
+    for c_i, h_txt in enumerate(headers_res):
+        cell = tbl_res.rows[0].cells[c_i]
+        set_cell_background(cell, "A6A6A6")
+        p = cell.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = Pt(4)
+        p.paragraph_format.space_after = Pt(4)
+        r_h = p.add_run(h_txt)
+        r_h.font.name = 'Arial'
+        r_h.bold = True
+        r_h.font.size = Pt(10.0)
+
+    for r_i, am in enumerate(amostras_dados):
+        row = tbl_res.rows[r_i+1]
+        
+        p_s = row.cells[0].paragraphs[0]
+        p_s.paragraph_format.space_before = Pt(4)
+        p_s.paragraph_format.space_after = Pt(4)
+        r_s = p_s.add_run(am["sample_id"])
+        r_s.font.name = 'Arial'
+        r_s.font.size = Pt(10.0)
+        
+        p_h = row.cells[1].paragraphs[0]
+        p_h.paragraph_format.space_before = Pt(4)
+        p_h.paragraph_format.space_after = Pt(4)
+        r_h = p_h.add_run(am["horas"])
+        r_h.font.name = 'Arial'
+        r_h.font.size = Pt(10.0)
+        
+        p_e = row.cells[2].paragraphs[0]
+        p_e.paragraph_format.space_before = Pt(4)
+        p_e.paragraph_format.space_after = Pt(4)
+        r_e = p_e.add_run(vida_util_geral if vida_util_geral else "600 horas")
+        r_e.font.name = 'Arial'
+        r_e.font.size = Pt(10.0)
+        
+        # EXIBIÇÃO EXPLÍCITA DAS FALHAS CADASTRADAS
+        p_f = row.cells[3].paragraphs[0]
+        p_f.paragraph_format.space_before = Pt(4)
+        p_f.paragraph_format.space_after = Pt(4)
+        texto_falhas_resumo = am["defeitos"].strip() if am["defeitos"] and am["defeitos"].strip() else "Nenhuma falha relatada."
+        r_f = p_f.add_run(texto_falhas_resumo)
+        r_f.font.name = 'Arial'
+        r_f.font.size = Pt(10.0)
+
+    prevent_table_split(tbl_res)
+
+    doc.add_paragraph()
+
+    # ----------------------------------------------------
+    # SEÇÃO 3: MATRIZ DE FREQUÊNCIA E IMPACTO DE FALHAS (OPÇÃO A)
+    # ----------------------------------------------------
+    p_mat_lbl = doc.add_paragraph()
+    p_mat_lbl.paragraph_format.keep_with_next = True
+    p_mat_lbl.paragraph_format.space_before = Pt(12)
+    p_mat_lbl.paragraph_format.space_after = Pt(6)
+    r_mat_lbl = p_mat_lbl.add_run("3- Matriz de Frequência e Impacto de Falhas")
+    r_mat_lbl.font.name = 'Arial'
+    r_mat_lbl.bold = True
+    r_mat_lbl.font.size = Pt(11)
+
+    # Agrupamento automático de falhas considerando múltipla escolha por amostra
+    matriz_agrupada = {}
+    ordem_impacto = {"Nenhum": 0, "Baixo": 1, "Moderado": 2, "Crítico": 3}
+    
+    for am in amostras_dados:
+        cats = am.get("categorias_falha", [])
+        imp = am.get("impacto_falha", "Nenhum")
+        s_id = am.get("sample_id", "")
+        
+        for cat in cats:
+            if cat not in matriz_agrupada:
+                matriz_agrupada[cat] = {"amostras": [], "qtd": 0, "impacto": imp}
+            matriz_agrupada[cat]["amostras"].append(s_id)
+            matriz_agrupada[cat]["qtd"] += 1
+            if ordem_impacto.get(imp, 0) > ordem_impacto.get(matriz_agrupada[cat]["impacto"], 0):
+                matriz_agrupada[cat]["impacto"] = imp
+
+    if matriz_agrupada:
+        tbl_mat = doc.add_table(rows=len(matriz_agrupada)+1, cols=4)
+        tbl_mat.style = 'Table Grid'
+        tbl_mat.alignment = WD_TABLE_ALIGNMENT.CENTER
+        
+        headers_mat = ["Categoria da Falha", "Amostras Afetadas", "Total de Ocorrências", "Impacto no Teste"]
+        for c_i, h_txt in enumerate(headers_mat):
+            cell = tbl_mat.rows[0].cells[c_i]
+            set_cell_background(cell, "A6A6A6")
+            p = cell.paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.space_before = Pt(4)
+            p.paragraph_format.space_after = Pt(4)
+            r_h = p.add_run(h_txt)
+            r_h.font.name = 'Arial'
+            r_h.bold = True
+            r_h.font.size = Pt(10.0)
+
+        for row_idx, (cat, info) in enumerate(matriz_agrupada.items()):
+            row = tbl_mat.rows[row_idx + 1]
+            
+            p_cat = row.cells[0].paragraphs[0]
+            p_cat.paragraph_format.space_before = Pt(4)
+            p_cat.paragraph_format.space_after = Pt(4)
+            r_c = p_cat.add_run(cat)
+            r_c.font.name = 'Arial'
+            r_c.font.size = Pt(10.0)
+            
+            p_am = row.cells[1].paragraphs[0]
+            p_am.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_am.paragraph_format.space_before = Pt(4)
+            p_am.paragraph_format.space_after = Pt(4)
+            r_a = p_am.add_run(", ".join(info["amostras"]))
+            r_a.font.name = 'Arial'
+            r_a.font.size = Pt(10.0)
+            
+            p_qtd = row.cells[2].paragraphs[0]
+            p_qtd.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_qtd.paragraph_format.space_before = Pt(4)
+            p_qtd.paragraph_format.space_after = Pt(4)
+            r_q = p_qtd.add_run(str(info["qtd"]))
+            r_q.font.name = 'Arial'
+            r_q.font.size = Pt(10.0)
+            
+            p_imp = row.cells[3].paragraphs[0]
+            p_imp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_imp.paragraph_format.space_before = Pt(4)
+            p_imp.paragraph_format.space_after = Pt(4)
+            r_i = p_imp.add_run(info["impacto"])
+            r_i.font.name = 'Arial'
+            r_i.font.size = Pt(10.0)
+            
+        prevent_table_split(tbl_mat)
+    else:
+        p_no_fail = doc.add_paragraph()
+        p_no_fail.paragraph_format.space_before = Pt(2)
+        p_no_fail.paragraph_format.space_after = Pt(6)
+        r_nf = p_no_fail.add_run("Nenhuma categoria de falha identificada durante os testes das amostras.")
+        r_nf.font.name = 'Arial'
+        r_nf.font.size = Pt(10.0)
+        r_nf.font.italic = True
+
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+
+    st.success("✅ Relatório Word (.docx) gerado com sucesso!")
+    st.download_button(
+        label="📥 Baixar Documento Word (.docx)",
+        data=buffer,
+        file_name=f"ST {codigo_st if codigo_st else '000'} - Karcher {item_testado if item_testado else 'Relatorio'}.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        use_container_width=True
+    )

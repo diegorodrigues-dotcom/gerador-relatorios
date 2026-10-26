@@ -179,29 +179,4 @@ for idx in range(int(num_amostras)):
                 key=f"cat_{idx}"
             )
         with col_imp:
-            impacto_falha = st.selectbox(
-                "Impacto no Teste",
-                ["Nenhum", "Baixo", "Moderado", "Crítico"],
-                key=f"imp_{idx}"
-            )
-
-    st.write(f"**Parâmetros de Teste Funcional - {sample_id if sample_id else f'Amostra {idx+1}'}:**")
-    
-    if incluir_rpm:
-        m1, m2, m3, m4, m5, m6 = st.columns(6)
-    else:
-        m1, m2, m3, m4, m5 = st.columns(5)
-    
-    with m1:
-        st.caption("1. Tensão (V)")
-        v30 = st.text_input("30s", value="", placeholder="Ex: 126.2", key=f"v30_{idx}")
-        v1m = st.text_input("1min", value="", placeholder="Ex: 127.5", key=f"v1m_{idx}")
-        v3m = st.text_input("3min", value="", placeholder="Ex: 128.0", key=f"v3m_{idx}")
-        v5m = st.text_input("5min", value="", placeholder="Ex: 127.1", key=f"v5m_{idx}")
-
-    with m2:
-        st.caption("2. Corrente (A)")
-        i30 = st.text_input("30s", value="", placeholder="Ex: 12.68", key=f"i30_{idx}")
-        i1m = st.text_input("1min", value="", placeholder="Ex: 12.64", key=f"i1m_{idx}")
-        i3m = st.text_input("3min", value="", placeholder="Ex: 12.60", key=f"i3m_{idx}")
-        i5m = st.text_input("5min
+            impacto_falha = st.

@@ -176,6 +176,7 @@ for idx in range(int(num_amostras)):
                 "Categorias da Falha",
                 options=["Vazamento / Vedação", "Motor / Sobreaquecimento", "Elétrica / Chave", "Mecânica / Bomba", "Acessórios / Pistola / Lança", "Outros"],
                 default=[],
+                placeholder="Selecione as opções...",
                 key=f"cat_{idx}"
             )
         with col_imp:
